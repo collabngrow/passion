@@ -86,6 +86,80 @@ place deliberately; revisit when `firebase-admin` ships an updated `google-gax`.
 
 ---
 
+## Sprint 2 — Content pipelines
+
+**Status:** complete
+
+### Exercise pipeline
+
+`content/exercise.md` (copied from `exercise_content_1.md`) is the human-readable source of
+truth. `scripts/build-exercise.mjs` structures it into `lib/exercise/exercise.generated.ts`:
+**43 questions across 14 sections**, `exerciseVersion: "1.0"`.
+
+Question prose is parsed at build time into typed blocks (paragraphs, bullet lists, inline
+bold) rather than shipped as raw Markdown, so the participant UI needs no runtime Markdown
+parser. 224 blocks, 15 bold runs.
+
+The script validates hard and exits non-zero on any surprise — wrong question count,
+non-contiguous numbering, an empty section, a duplicate id. A silently short exercise would mean
+participants are asked fewer questions than the exercise defines, which §68 forbids, so failing
+the build is the correct response.
+
+`lib/exercise/index.ts` is the only reader of the generated module. It exposes navigation
+(`nextQuestion`, `previousQuestion`, `questionPosition`) and `isLastInSection`, which drives the
+per-section interpretation boundary agreed for §59.
+
+### Knowledge base
+
+`content/knowledge-base/` — seven files, one per §38K category, authored from the interpretive
+principles in `exercise_content_1.md` plus the concepts named in the spec.
+
+**56 items, 28 themes, ~7,500 words.** `scripts/build-kb.mjs` parses per-item YAML frontmatter,
+validates, and emits `lib/ai/knowledge-base.generated.ts`.
+
+Build-time validation enforces: unique ids, resolving cross-references, at least one theme per
+item (an untagged item can never be retrieved), all seven categories populated, and a
+**60-word floor per item** — the mechanical guard against §38A's "do not create a shallow
+summary".
+
+### Retrieval
+
+`lib/ai/retrieval.ts`, no vector database (§38C, §96).
+
+- `principles`, `cautions` and `interpretationGuidance` are sent on **every** request. These are
+  the rules the engine must never operate without; dropping one to save tokens is how a system
+  starts diagnosing people.
+- `concepts`, `values`, `distinctions`, `tensions` are selected by theme overlap with the
+  section, supplemented by scanning the answer text — so a wealth question answered mostly about
+  family pulls in the relationship material.
+- Selection is deterministic, so identical input yields an identical prompt. This is a
+  precondition for the §77 idempotency keys in S8.
+- `fullKnowledgeBase()` gives the synthesis the entire corpus, since narrowing by theme would
+  exclude exactly the cross-section connections §38H exists to find.
+
+### Decision: the source is never named
+
+§38I forbids revealing the framework's provenance to participants. Rather than relying on prompt
+instructions alone, the knowledge base itself never names the source — every concept is written
+on its own terms. The model is never given the name, so it cannot leak it.
+
+`lib/ai/retrieval.test.ts` asserts this against the built corpus. `content/knowledge-base/README.md`
+carries the §38L checklist, with each row mapped to where it is actually enforced.
+
+### Generated files are gitignored
+
+`lib/**/*.generated.ts` is excluded from version control. `generate` is wired into `predev`,
+`prebuild` and `pretest`, so the generated modules are always rebuilt from source — including on
+Vercel, which installs devDependencies and runs `npm run build`. A stale or hand-edited
+generated file cannot ship.
+
+### Verification
+
+`npm run build`, `npm run lint`, `npx tsc --noEmit` clean. **26 tests passing** across two files
+(exercise structure and navigation; knowledge base content and retrieval).
+
+---
+
 ## Environment variables
 
 Present in `.env`: seven `NEXT_PUBLIC_FIREBASE_*`, plus `GEMINI_API_KEY_1`, `GEMINI_API_KEY_2`,
@@ -110,4 +184,4 @@ Still required before the application can run end-to-end:
 
 ## Next
 
-Sprint 2 — content pipelines: the exercise parser and the knowledge base.
+Sprint 3 — cryptography and invitation core: scrypt hashing, AES-GCM encryption, grant tokens, rate limiting.

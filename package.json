@@ -4,11 +4,15 @@
   "private": true,
   "description": "CollabNGrow Passion Analyzer — a private, invitation-only guided self-reflection experience.",
   "scripts": {
+    "generate": "node scripts/build-exercise.mjs && node scripts/build-kb.mjs",
+    "predev": "npm run generate",
     "dev": "next dev",
+    "prebuild": "npm run generate",
     "build": "next build",
     "start": "next start",
     "lint": "eslint",
     "typecheck": "tsc --noEmit",
+    "pretest": "npm run generate",
     "test": "vitest run",
     "test:watch": "vitest"
   },
