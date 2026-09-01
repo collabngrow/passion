@@ -12,6 +12,7 @@ import {
   PERCEIVED_WORTH_CUSTOM_VALUE,
   PERCEIVED_WORTH_OPTIONS,
   PERCEIVED_WORTH_PRICELESS_VALUE,
+  PRICELESS_RUPEES,
   REVELATION_IMPACT_OPTIONS,
   WILLINGNESS_TO_PAY_OPTIONS,
   type SurveyOption,
@@ -43,7 +44,7 @@ export type FeedbackSummary = {
   /** Mean rupee value, over the responses that named an amount. */
   averageWorth: { rupees: number | null; sample: number };
   averageWillingness: { rupees: number | null; sample: number };
-  /** Not a large number, so counted rather than averaged. */
+  /** Counted as well as valued, so the mean can be read in context. */
   pricelessCount: number;
   /** Q2 against Q3 for the people who answered both. */
   shift: { increased: number; unchanged: number; decreased: number; sample: number };
@@ -59,11 +60,17 @@ export const HIGH_VALUE_RUPEES = 2000;
 /**
  * The rupee figure a selection stands for, or null when it is not an amount.
  *
- * Option 1 is a refusal rather than an offer of zero, and "Priceless" is a
- * sentiment rather than a large number; averaging either as a figure would
- * misreport it, so both are absent here and reported separately.
+ * "Priceless" is valued at the top of the scale rather than excluded, so it can
+ * be quantified alongside everything else. It is still counted separately in
+ * the summary, because a mean that silently contains a ceiling value should be
+ * readable next to how many people chose that ceiling.
+ *
+ * Option 1 remains absent: a refusal to pay is not an offer of zero, and
+ * averaging it as one would put a figure in someone's mouth that they
+ * explicitly declined to give.
  */
 export function amountFor(value: number, custom: number | null): number | null {
+  if (value === PERCEIVED_WORTH_PRICELESS_VALUE) return PRICELESS_RUPEES;
   if (value === PERCEIVED_WORTH_CUSTOM_VALUE) {
     return typeof custom === "number" && Number.isFinite(custom) && custom > 0
       ? custom
@@ -75,15 +82,13 @@ export function amountFor(value: number, custom: number | null): number | null {
 /**
  * A comparable position on the price scale, for the before/after comparison.
  *
- * This intentionally differs from `amountFor`. Moving from "I would never pay"
- * to "₹200" is a real increase, so a refusal has to rank below every amount --
- * but it is still not a claim that the person values the exercise at ₹0, so it
- * stays out of the average. "Priceless" ranks above everything for the same
- * reason it cannot be averaged.
+ * This differs from `amountFor` in exactly one place, on purpose. Moving from
+ * "I would never pay" to "₹200" is a real increase, so a refusal has to rank
+ * below every amount -- but it is still not a claim that the exercise is worth
+ * ₹0, so it stays out of the average.
  */
 function rank(value: number, custom: number | null): number | null {
   if (value === 1) return 0;
-  if (value === PERCEIVED_WORTH_PRICELESS_VALUE) return Number.POSITIVE_INFINITY;
   return amountFor(value, custom);
 }
 
@@ -154,12 +159,11 @@ export function summariseFeedback(records: FeedbackRecord[]): FeedbackSummary {
   }).length;
 
   /**
-   * "Priceless" counts as high value; a written-in amount counts only if it
-   * actually reaches the threshold. The source document lumps options 6–10
-   * together, which would count someone who wrote "₹50" as a ₹2,000+ response.
+   * Judged by the amount, which now includes "Priceless" at the top of the
+   * scale. The source document lumps options 6–10 together, which would count
+   * someone who wrote in "₹50" as a ₹2,000+ response.
    */
   const worthHigh = records.filter((record) => {
-    if (record.perceivedWorth === PERCEIVED_WORTH_PRICELESS_VALUE) return true;
     const amount = amountFor(record.perceivedWorth, record.perceivedWorthCustom);
     return amount !== null && amount >= HIGH_VALUE_RUPEES;
   }).length;

@@ -1,8 +1,11 @@
 "use client";
 
 import { useCallback, useEffect, useId, useState } from "react";
+import Link from "next/link";
 
+import { useAuthState } from "@/components/auth/useAuthState";
 import { Button } from "@/components/ui/Button";
+import { Logo } from "@/components/ui/Logo";
 import { Notice } from "@/components/ui/Notice";
 import { apiFetch } from "@/lib/auth/client";
 import {
@@ -16,14 +19,14 @@ import {
 /**
  * The feedback survey (feedback_plan.md; PLAN.md S9.5).
  *
- * Appears below the reflection, once it exists. Three questions, one of which
- * is already answered: Q2 was asked at onboarding and is replayed here
- * read-only, so the participant can see their own before-and-after rather than
- * being asked the same thing twice.
+ * A page of its own, reached deliberately. It is never shown inside the
+ * reflection and never interrupts it: §62 asks the experience to end on its
+ * final question, and participants are invited to this page separately once
+ * they have had time with what they read.
  *
- * It is deliberately quiet. It sits after the reflection has finished so it
- * cannot interrupt it, and it is framed as helping rather than rating -- this
- * page is a letter, not a product to review (§61).
+ * Three questions, one of which is already answered: Q2 was asked at onboarding
+ * and is replayed here read-only, so the participant sees their own
+ * before-and-after rather than being asked the same thing twice.
  */
 
 type SurveyState = {
@@ -32,7 +35,7 @@ type SurveyState = {
   willingnessToPay: number | null;
 };
 
-/** Shared radio row, so the three questions cannot drift apart visually. */
+/** Shared radio row, so the questions cannot drift apart visually. */
 function OptionRow({
   name,
   option,
@@ -74,10 +77,27 @@ function OptionRow({
   );
 }
 
-export function FeedbackSurvey() {
+/** Page frame, so every state below arrives with the same header. */
+function Shell({ children }: { children: React.ReactNode }) {
+  return (
+    <main className="mx-auto w-full max-w-reading flex-1 px-6 py-12 sm:py-16">
+      <div className="flex justify-center">
+        <Logo size="lg" label="CollabNGrow" priority />
+      </div>
+      <h1 className="mt-8 text-center text-2xl font-semibold tracking-tight text-ink sm:text-3xl">
+        Your feedback
+      </h1>
+      {children}
+    </main>
+  );
+}
+
+export function SurveyView() {
   const customFieldId = useId();
+  const { user, loading: authLoading } = useAuthState();
 
   const [state, setState] = useState<SurveyState | null>(null);
+  const [loadError, setLoadError] = useState<string | null>(null);
   const [impact, setImpact] = useState<number | null>(null);
   const [worth, setWorth] = useState<number | null>(null);
   const [custom, setCustom] = useState("");
@@ -88,19 +108,22 @@ export function FeedbackSurvey() {
   const load = useCallback(async (alive: () => boolean) => {
     const result = await apiFetch<SurveyState>("/api/feedback");
     if (!alive()) return;
-    // A survey that cannot be loaded is not worth an error on this page: the
-    // reflection above it is what the participant came for.
-    if (result.ok) setState(result.data);
+    if (!result.ok) {
+      setLoadError(result.error);
+      return;
+    }
+    setState(result.data);
   }, []);
 
   useEffect(() => {
+    if (authLoading || !user) return;
     let active = true;
     // eslint-disable-next-line react-hooks/set-state-in-effect
     void load(() => active);
     return () => {
       active = false;
     };
-  }, [load]);
+  }, [authLoading, user, load]);
 
   async function handleSubmit(event: React.FormEvent) {
     event.preventDefault();
@@ -135,36 +158,86 @@ export function FeedbackSurvey() {
     setState((previous) => (previous ? { ...previous, submitted: true } : previous));
   }
 
-  if (!state || !state.unlocked) return null;
-
-  if (state.submitted) {
+  if (authLoading || (!state && !loadError && user)) {
     return (
-      <section className="mt-10 rounded-lg border border-line bg-brand-soft px-6 py-7 text-center">
-        <p className="font-medium text-ink">
-          {justSubmitted ? "Thank you." : "Thanks for your feedback."}
+      <main className="flex flex-1 items-center justify-center p-8">
+        <p role="status" className="text-ink-soft">
+          Loading…
         </p>
-        <p className="mx-auto mt-2 max-w-md text-sm leading-relaxed text-ink-soft">
-          {justSubmitted
-            ? "Your feedback is with us. It genuinely shapes what this becomes."
-            : "You've already shared your thoughts on this reflection."}
-        </p>
-      </section>
+      </main>
     );
   }
 
-  const priorAnswer = state.willingnessToPay;
+  if (!user) {
+    return (
+      <Shell>
+        <p className="mt-5 text-center leading-relaxed text-ink-soft">
+          Open your invitation link and sign in first — the survey is tied to your
+          reflection.
+        </p>
+      </Shell>
+    );
+  }
+
+  if (loadError) {
+    return (
+      <Shell>
+        <Notice tone="error" className="mt-6">
+          {loadError}
+        </Notice>
+      </Shell>
+    );
+  }
+
+  if (state && !state.unlocked) {
+    return (
+      <Shell>
+        <p className="mt-5 text-center leading-relaxed text-ink-soft">
+          This opens once your reflection has been written. There is nothing to say
+          about it yet.
+        </p>
+        <div className="mt-8 text-center">
+          <Link
+            href="/journey/result"
+            className="text-sm font-medium text-brand underline underline-offset-4 hover:text-brand-dark"
+          >
+            Go to your reflection
+          </Link>
+        </div>
+      </Shell>
+    );
+  }
+
+  if (state?.submitted) {
+    return (
+      <Shell>
+        <p className="mt-5 text-center leading-relaxed text-ink-soft">
+          {justSubmitted
+            ? "Thank you. Your feedback is with us, and it genuinely shapes what this becomes."
+            : "You've already shared your thoughts on this. Thank you."}
+        </p>
+        <div className="mt-8 text-center">
+          <Link
+            href="/journey/result"
+            className="text-sm font-medium text-brand underline underline-offset-4 hover:text-brand-dark"
+          >
+            Back to your reflection
+          </Link>
+        </div>
+      </Shell>
+    );
+  }
+
+  const priorAnswer = state?.willingnessToPay ?? null;
 
   return (
-    <section className="mt-10 rounded-lg border border-line bg-surface px-6 py-7 sm:px-8">
-      <h2 className="text-lg font-semibold tracking-tight text-ink">
-        Three quick questions
-      </h2>
-      <p className="mt-2 text-sm leading-relaxed text-ink-soft">
-        Under a minute, and it tells us whether this was worth your time. Your answers
-        are separate from your reflection.
+    <Shell>
+      <p className="mt-5 text-center leading-relaxed text-ink-soft">
+        Three questions, under a minute. Entirely optional, and separate from your
+        reflection — nothing you write here changes what you read.
       </p>
 
-      <form onSubmit={handleSubmit} noValidate className="mt-7 space-y-8">
+      <form onSubmit={handleSubmit} noValidate className="mt-10 space-y-9">
         <fieldset>
           <legend className="font-medium text-ink">
             How did the reflection land for you?
@@ -252,10 +325,18 @@ export function FeedbackSurvey() {
 
         {error ? <Notice tone="error">{error}</Notice> : null}
 
-        <Button type="submit" size="lg" disabled={submitting}>
-          {submitting ? "Sending…" : "Send feedback"}
-        </Button>
+        <div className="flex flex-wrap items-center gap-6">
+          <Button type="submit" size="lg" disabled={submitting}>
+            {submitting ? "Sending…" : "Send feedback"}
+          </Button>
+          <Link
+            href="/journey/result"
+            className="text-sm text-ink-soft underline underline-offset-4 hover:text-ink"
+          >
+            Back to your reflection
+          </Link>
+        </div>
       </form>
-    </section>
+    </Shell>
   );
 }

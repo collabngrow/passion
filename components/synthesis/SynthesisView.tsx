@@ -4,7 +4,6 @@ import { useCallback, useEffect, useState } from "react";
 import Link from "next/link";
 
 import { useAuthState } from "@/components/auth/useAuthState";
-import { FeedbackSurvey } from "@/components/feedback/FeedbackSurvey";
 import { Button } from "@/components/ui/Button";
 import { Logo } from "@/components/ui/Logo";
 import { Notice } from "@/components/ui/Notice";
@@ -267,21 +266,28 @@ export function SynthesisView() {
             </p>
           </section>
 
-          {/*
-            The survey sits after the culmination, not before it: §62 asks that
-            the experience end on that question, and a form placed above it
-            would make the last thing the participant reads a rating exercise.
-            It renders itself only once the reflection has been written.
-          */}
-          <FeedbackSurvey />
-
           <footer className="mt-10 flex flex-wrap items-center justify-between gap-4 border-t border-line pt-6">
-            <Link
-              href="/journey"
-              className="text-sm font-medium text-brand underline underline-offset-4 hover:text-brand-dark"
-            >
-              Back to your answers
-            </Link>
+            <div className="flex flex-wrap items-center gap-x-6 gap-y-2">
+              <Link
+                href="/journey"
+                className="text-sm font-medium text-brand underline underline-offset-4 hover:text-brand-dark"
+              >
+                Back to your answers
+              </Link>
+              {/*
+                The survey lives on its own page and is never surfaced inside
+                the reflection: §62 asks the experience to end on its final
+                question, and a form here would make the last thing someone
+                reads a rating exercise. This is a quiet way back to it for
+                anyone who has been asked to fill it in.
+              */}
+              <Link
+                href="/journey/survey"
+                className="text-sm text-ink-soft underline underline-offset-4 hover:text-ink"
+              >
+                Feedback survey
+              </Link>
+            </div>
             {data?.generatedAt ? (
               <time dateTime={data.generatedAt} className="text-xs text-ink-soft">
                 Written {new Date(data.generatedAt).toLocaleDateString()}

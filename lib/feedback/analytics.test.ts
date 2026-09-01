@@ -7,7 +7,12 @@ import {
   summariseFeedback,
   type FeedbackRecord,
 } from "./analytics";
-import { PERCEIVED_WORTH_OPTIONS, parseCustomWorth } from "./questions";
+import {
+  MAX_WORTH_RUPEES,
+  PERCEIVED_WORTH_OPTIONS,
+  PRICELESS_RUPEES,
+  parseCustomWorth,
+} from "./questions";
 
 function record(overrides: Partial<FeedbackRecord> = {}): FeedbackRecord {
   return {
@@ -26,13 +31,20 @@ describe("amountFor", () => {
   });
 
   /**
-   * A refusal is not an offer of zero and "Priceless" is not a large number.
-   * Either one treated as a figure would move the average the administrator
-   * prices against.
+   * "Priceless" is the top of the scale, not an absent answer, so it can be
+   * quantified alongside everything else.
    */
-  it("refuses to turn a refusal or 'Priceless' into a number", () => {
+  it("values 'Priceless' at the ceiling of the scale", () => {
+    expect(amountFor(10, null)).toBe(PRICELESS_RUPEES);
+    expect(PRICELESS_RUPEES).toBe(MAX_WORTH_RUPEES);
+  });
+
+  /**
+   * A refusal to pay is not an offer of zero. Averaging it as one would put a
+   * figure in someone's mouth that they explicitly declined to give.
+   */
+  it("refuses to turn a refusal into a number", () => {
     expect(amountFor(1, null)).toBeNull();
-    expect(amountFor(10, null)).toBeNull();
   });
 
   it("uses the written-in amount for option 9, and only a usable one", () => {
@@ -86,18 +98,31 @@ describe("summariseFeedback", () => {
     expect(summary.averageWillingness.sample).toBe(1);
   });
 
-  it("averages only the answers that are amounts", () => {
+  it("leaves a refusal out of the average without dropping the response", () => {
     const summary = summariseFeedback([
       record({ perceivedWorth: 2 }), // ₹200
       record({ perceivedWorth: 4 }), // ₹850
-      record({ perceivedWorth: 1 }), // refusal — excluded
-      record({ perceivedWorth: 10 }), // priceless — excluded, counted apart
+      record({ perceivedWorth: 1 }), // refusal — not an amount
     ]);
 
     expect(summary.averageWorth.sample).toBe(2);
     expect(summary.averageWorth.rupees).toBe(525);
+    expect(summary.total).toBe(3);
+  });
+
+  /**
+   * "Priceless" carries the ceiling value, and is still counted on its own so
+   * a mean that contains a ceiling can be read in context.
+   */
+  it("averages 'Priceless' at the ceiling and counts it separately", () => {
+    const summary = summariseFeedback([
+      record({ perceivedWorth: 2 }), // ₹200
+      record({ perceivedWorth: 10 }), // ₹500,000
+    ]);
+
+    expect(summary.averageWorth.sample).toBe(2);
+    expect(summary.averageWorth.rupees).toBe(Math.round((200 + PRICELESS_RUPEES) / 2));
     expect(summary.pricelessCount).toBe(1);
-    expect(summary.total).toBe(4);
   });
 
   it("includes a written-in amount in the average", () => {
@@ -140,7 +165,7 @@ describe("summariseFeedback", () => {
       expect(summary.averageWillingness.sample).toBe(0);
     });
 
-    it("ranks 'Priceless' above every amount", () => {
+    it("ranks 'Priceless' above every bracket a participant could have named", () => {
       const summary = summariseFeedback([
         record({ willingnessToPay: 8, perceivedWorth: 10 }),
       ]);
@@ -234,11 +259,12 @@ describe("parseCustomWorth", () => {
 
   /**
    * One joke entry would drag the average worth into meaninglessness, and that
-   * average is the number a pricing decision would rest on.
+   * average is the number a pricing decision would rest on. The ceiling is
+   * shared with "Priceless" so nothing written in can outrank the top option.
    */
-  it("rejects an amount beyond any honest answer", () => {
-    expect(parseCustomWorth("10000000")).toBe(10_000_000);
-    expect(parseCustomWorth("10000001")).toBeNull();
+  it("rejects an amount above the ceiling of the scale", () => {
+    expect(parseCustomWorth("500000")).toBe(MAX_WORTH_RUPEES);
+    expect(parseCustomWorth("500001")).toBeNull();
     expect(parseCustomWorth("999999999999")).toBeNull();
   });
 });

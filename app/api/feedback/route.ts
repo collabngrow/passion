@@ -1,5 +1,6 @@
 import { getStoredSynthesis } from "@/lib/ai/generate";
 import {
+  MAX_WORTH_RUPEES,
   PERCEIVED_WORTH_CUSTOM_VALUE,
   isValidPerceivedWorth,
   isValidRevelationImpact,
@@ -82,7 +83,11 @@ export const POST = withErrorHandling("feedback", async (request: Request) => {
   if (body.perceivedWorth === PERCEIVED_WORTH_CUSTOM_VALUE) {
     perceivedWorthCustom = parseCustomWorth(body.perceivedWorthCustom);
     if (perceivedWorthCustom === null) {
-      throw badRequest("Please enter an amount in rupees.");
+      // Naming the ceiling matters: without it, a rejected large number looks
+      // like the form is broken rather than bounded.
+      throw badRequest(
+        `Please enter an amount in rupees, up to ${MAX_WORTH_RUPEES.toLocaleString("en-IN")}.`,
+      );
     }
   }
 

@@ -13,6 +13,7 @@ import {
 import {
   PERCEIVED_WORTH_CUSTOM_VALUE,
   PERCEIVED_WORTH_OPTIONS,
+  PRICELESS_RUPEES,
   REVELATION_IMPACT_OPTIONS,
   WILLINGNESS_TO_PAY_OPTIONS,
 } from "@/lib/feedback/questions";
@@ -215,7 +216,8 @@ export function FeedbackPanel() {
             <section className="rounded-lg border border-line bg-surface px-6 py-5">
               <h2 className="font-semibold text-ink">Average perceived worth</h2>
               <p className="mt-1 text-sm text-ink-soft">
-                Q3, over the {summary.averageWorth.sample} who named an amount.
+                Q3, over the {summary.averageWorth.sample} whose answer carries an
+                amount.
               </p>
 
               <p className="mt-4 text-4xl font-semibold text-brand">
@@ -252,14 +254,14 @@ export function FeedbackPanel() {
               </dl>
 
               {/*
-                "Priceless" and a refusal to pay are both excluded from the
-                average: neither is an amount. Saying so here stops the number
-                being read as something it is not.
+                An average that silently contains a ceiling value has to say so,
+                or it reads as a market price rather than a scale with a top.
               */}
               <p className="mt-4 text-xs leading-relaxed text-ink-soft">
-                Excludes &ldquo;Priceless&rdquo; and &ldquo;I would never
-                pay&rdquo; — neither is an amount, so averaging them as one
-                would misreport it.
+                &ldquo;Priceless&rdquo; counts as {rupees.format(PRICELESS_RUPEES)},
+                the top of the scale, and is also counted on its own above.
+                &ldquo;I would never pay&rdquo; is excluded — a refusal is not an
+                offer of zero.
               </p>
             </section>
           </div>

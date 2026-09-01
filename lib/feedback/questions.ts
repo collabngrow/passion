@@ -61,16 +61,31 @@ export const PERCEIVED_WORTH_OPTIONS: SurveyOption[] = [
 
 /** Option 9 on Q3 reveals a free-text amount. */
 export const PERCEIVED_WORTH_CUSTOM_VALUE = 9;
-/** Option 10 is excluded from the average and reported separately. */
+/** Option 10, "Priceless". Still counted separately as well as valued. */
 export const PERCEIVED_WORTH_PRICELESS_VALUE = 10;
+
+/**
+ * The ceiling of the scale, in rupees.
+ *
+ * Two things sit here by decision: the largest amount anyone may write in, and
+ * the figure "Priceless" is worth. Pinning them to the same number is what
+ * makes "Priceless" quantifiable -- it is the top of the scale rather than a
+ * response that has to be left out of every average. It is deliberately a
+ * plausible ceiling rather than a huge one, so a single extreme answer cannot
+ * dominate the mean a price would be set from.
+ */
+export const MAX_WORTH_RUPEES = 500_000;
+
+/** How much "Priceless" is counted as. The top of the scale. */
+export const PRICELESS_RUPEES = MAX_WORTH_RUPEES;
 
 /**
  * Midpoints in rupees, for the admin average.
  *
- * Open-ended and non-numeric options are absent by design: option 1 is a
- * refusal rather than zero willingness to pay, and "Priceless" is not a large
- * number. Averaging either as a figure would misrepresent the response, so both
- * are counted separately in the dashboard.
+ * Option 1 is absent by design: a refusal to pay is not an offer of zero, and
+ * averaging it as a figure would put words in someone's mouth. It is counted
+ * separately in the dashboard. "Priceless" is handled above, not here, because
+ * it is a fixed point on the scale rather than the midpoint of a bracket.
  */
 export const PAY_OPTION_MIDPOINTS: Record<number, number> = {
   2: 200,
@@ -126,14 +141,14 @@ export const WILLINGNESS_TO_PAY_PREAMBLE =
   "People tend to weigh something more seriously when they have put a price on it.";
 
 /**
- * Bounds on the written-in amount for Q3 option 9.
+ * The written-in amount shares the ceiling of the scale.
  *
- * An upper bound matters because a single joke entry would drag the admin's
- * average worth into meaninglessness, and the average is the number the
- * pricing decision rests on. A crore is far beyond any honest answer to this
- * question while still leaving room for a generous one.
+ * An upper bound matters because a single joke entry would drag the average
+ * worth into meaninglessness, and that average is the number a pricing
+ * decision rests on. Sharing the ceiling with "Priceless" also keeps the two
+ * comparable: nobody can write in a figure that outranks the top option.
  */
-export const MAX_CUSTOM_WORTH_RUPEES = 10_000_000;
+export const MAX_CUSTOM_WORTH_RUPEES = MAX_WORTH_RUPEES;
 
 /**
  * Normalises a written-in amount, or returns null when it is not usable.
