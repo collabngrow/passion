@@ -19,7 +19,7 @@ called:
 
 The application is based on the exercise contained in:
 
-`exercise.md`
+`exercise_content_1.md`
 
 The visual identity is defined in:
 
@@ -29,6 +29,10 @@ You MUST read both files completely before implementing the product.
 
 gh auth user is signed in as collabngrow right now in the terminal
 google auth enabled in firebase and firebase app creds added to .env
+firebasew CLI is intalled and signedin  and authenticated in terminal
+firestore is created and started in testmode , no rules were changed from the default yet. your job
+
+
 
 ---
 
