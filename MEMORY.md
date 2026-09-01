@@ -931,45 +931,148 @@ tokens in `globals.css`, not observed.
 
 ---
 
+## Sprint 13 - Tests and documentation
+
+**Status:** complete
+
+**197 tests across 13 files**, up from 120 across 8. Five new files, and a `README.md`.
+
+### The gaps were where the fake was missing, not where the logic was hard
+
+The eight existing files covered everything reachable without a database. What was left
+untested was, almost exactly, what needed Firestore: binding, rate-limit windows, the
+authorization guards. Those are also the three places where a bug is a security bug, so the
+sprint is mostly `test/stubs/firestore.ts` -- an in-memory Firestore -- and what it unlocked.
+
+The fake buffers transactional writes until the callback returns, so a read inside a
+transaction cannot see its own pending writes.
+
+**What it deliberately does not model: Firestore's isolation.** A fake cannot prove a real
+database's concurrency guarantee, and a test that pretended to would be worse than no test.
+The binding tests assert the property this codebase actually owns -- that the decision comes
+from a value read *inside* the transaction, with `transactionCount` pinning that the read and
+the write really are one transaction. That is what S79 asks of this code, and it is what a
+later "simplification" could quietly lose.
+
+### New coverage
+
+| File | Tests | Covers |
+| --- | --- | --- |
+| `lib/invitations/binding.test.ts` | 19 | S86 Binding, plus disable and rotation |
+| `lib/auth/guards.test.ts` | 20 | Bearer parsing, `verifyIdToken`, `requireAdmin`, freshness |
+| `lib/security/rate-limit.test.ts` | 15 | Window arithmetic, self-healing, fail-open |
+| `lib/answers/fingerprint.test.ts` | 15 | The generation idempotency key (S77) |
+| `lib/brand/contrast.test.ts` | 8 | The S12 contrast findings, made permanent |
+
+The ones worth naming, because they pin a claim a comment makes and nothing else held up:
+
+- **A rejected attempt does not extend its own window.** Mutating `windowStart` to `now`
+  fails exactly this test and nothing else -- checked, not assumed.
+- **The limiter fails open**, and the warning it logs carries no identifier (S52).
+- **A refused bind writes nothing.** A partial write on a mismatch would hand a stranger a
+  foothold in someone else's invitation.
+- **`requireAdmin` refuses an unverified account whose address matches.** Without it, anyone
+  who can create an account claiming the admin address at a provider that does not verify it
+  becomes the administrator.
+- **An empty email is refused as 401 at `verifyRequest`, before the admin comparison.** The
+  test asserting a 403 there was wrong and was corrected to match the code; an empty string
+  reaching a comparison against a misconfigured `ADMIN_EMAIL` is the shape of a real bypass,
+  so which layer catches it is worth pinning.
+- **`checkRevoked` is passed to `verifyIdToken`.** Dropping it would let a logged-out session
+  keep working until its token expired, quietly undoing S19.
+
+### The contrast guard, and what it cost
+
+The S12 handoff asked S13 to consider a source-scanning check for contrast, since nothing
+about a ratio is visible in a diff. It computes ratios from the tokens in `globals.css` and
+the opacity in the utility, so it survives a palette change -- it is not a list of forbidden
+strings.
+
+It immediately failed on code S12 had just "fixed". `text-on-brand/90` is 5.05:1 on
+`--color-brand-dark`, the sidebar it actually sits on, but **4.15:1 on `--color-brand`**.
+S12's measurement was right for the real surface; the test checks both, because a gradient
+runs between them and that is precisely how the synthesis panel hid a 3.79:1.
+
+Rather than teach a static scan which background each element has, the rule became simpler:
+**white on rose is never faded.** The four remaining `/90` utilities in `AdminShell` are now
+plain `text-on-brand`. There is no headroom to fade it at all, and a test records that.
+
+Verified by regression: reintroducing `text-on-brand/70` fails with
+`AdminShell.tsx: text-on-brand/70 on brand-dark = 3.55:1`.
+
+### Two findings that are not tests
+
+- **`lib/answers/store.ts` held a raw NUL byte.** `fingerprintAnswers` joins on NUL, written
+  as a literal 0x00 rather than the escape. Identical value, but git classified the file as
+  binary: `grep` refused it and diffs would not render. Now the escape.
+- **The fingerprint does collide if an answer contains a NUL**, which JSON can encode. Pinned
+  in a test as a known property rather than asserted away. Left alone deliberately: the
+  fingerprint is per participant, so the worst case is someone's own regeneration being
+  skipped as a duplicate -- a missing regeneration, not access to anything -- and defending
+  it would add a length prefix nobody can read for a threat nobody has.
+
+### README.md
+
+S99's thirteen sections, S84's eleven setup steps in order, S85's commands. Written to be read
+by whoever deploys this, so it leads with the one structural decision everything follows from
+-- the browser holds no Firestore handle -- and says plainly what the two irreversible things
+are: losing `INVITATION_PASSWORD_ENCRYPTION_KEY` makes every existing invitation password
+unrecoverable, and an invitation binds to the first Google account that opens it, permanently.
+
+Every factual claim was checked against the code rather than the plan, including the ones it
+would have been easy to state from memory: the reveal freshness window, the audit trail
+storing `adminUid` and never an email, and the cookie flags.
+
+The `maxDuration = 300` / Vercel Hobby 60s conflict is documented under Deployment as the one
+open item before production, since a README that omitted it would let someone deploy into a
+generation that gets killed halfway.
+
+### Verification
+
+`npx tsc --noEmit`, `npx eslint`, `npx next build` clean. **197 tests passing.** 25 routes.
+
+---
+
 ## Handoff — start here
 
-**Done: S0-S12. Next: S13 (tests/docs), then S14 (ship).**
+**Done: S0-S13. Next: S14 (ship).**
 
 ### State
 
 | | |
 | --- | --- |
-| Branch | `main`, clean, **pushed to `origin`** |
+| Branch | `main`, clean, pushed to `origin` |
 | Build | `npx next build`, `npx eslint`, `npx tsc --noEmit` all clean |
-| Tests | **120 passing** across 8 files (`npx vitest run`) |
+| Tests | **197 passing** across 13 files (`npx vitest run`) |
 | Routes | 25 |
 | Firestore | deny-all rules **live** |
+| Docs | `README.md` complete (S84, S99) |
 | Live-verified | Firestore round-trip, all three Gemini keys, one real generation end to end |
 
 Prefer `npx <tool>` over `npm run <script>`: the sandbox classifier began blocking `npm run`
 once `deploy:rules` was added to `package.json`.
 
-### S13 is tests and documentation
+### S14 is the ship checklist
 
-The S86 matrix, minus anything needing a browser: password hash/verify, AES round-trip, grant
-token signing and expiry, rate-limiter windows, the exercise parser, knowledge retrieval, router
-fallback classification, idempotency keys, admin authorization guards. Most of that already has
-coverage in the eight existing files, so S13 is largely **finding the gaps in what exists**
-rather than starting from nothing. Then `README.md` per S84 and S99, including how to generate
-the encryption key.
+Walk S88 line by line, confirm the S38L knowledge-base checklist, and hand over the Vercel
+environment variable list -- which `README.md` now contains as a table, so S14 is confirming
+it rather than assembling it.
 
-One thing S12 leaves for S13 to consider: **the contrast fixes have no test behind them.** A
-source-scanning check in the style of `client-boundary.test.ts` - fail if `text-on-brand/` drops
-below `/90` - would stop the sprint's main finding being silently undone, since nothing about a
-ratio is visible in a diff. Deliberately not built during S12, which was scoped as an audit.
+**One thing genuinely blocks production, and it is the owner's call:**
+`maxDuration = 300` on `/api/journey/synthesis` exceeds Vercel's Hobby 60-second function
+limit, so a long synthesis is killed mid-generation there. Either a plan that permits 300s,
+or tighten `thinkingBudget` in `lib/ai/config.ts` until generation fits. `/api/journey/reflect`
+is at 120s with the same consideration. Documented in `README.md` under Deployment.
 
-### Two open items that are not S13
+The eight moderate `npm audit` findings (one transitive `uuid` via `firebase-admin`) remain
+open by choice; see Sprint 1.
 
-- **`maxDuration: 300` on `/api/journey/synthesis` exceeds Vercel's Hobby 60s function limit.**
-  Owner's decision, still open: a plan that permits it, or tighten `thinkingBudget` further.
-  Nothing else blocks deployment.
-- The eight moderate `npm audit` findings (one transitive `uuid` via `firebase-admin`) are still
-  open by choice; see Sprint 1.
+### What is not covered by any test, and cannot be here
+
+CLAUDE.md forbids browser verification, so nothing exercises: the service worker, PWA install
+and restore, and real Firestore transaction isolation. The binding tests are explicit about
+that last one rather than implying otherwise. If any of it is ever verified, it will be by
+hand, by the owner.
 
 ### Conventions this codebase holds to
 
@@ -978,8 +1081,8 @@ ratio is visible in a diff. Deliberately not built during S12, which was scoped 
 - Anything server-side starts `import "server-only"`. The browser gets Firebase **auth only** --
   `lib/firebase/client-boundary.test.ts` fails if that ever changes, because the deployed
   deny-all rules depend on it.
-- Tests are pure-unit: no Firestore emulator, no browser test. CLAUDE.md forbids browser
-  verification -- build checks at most.
+- Tests are pure-unit: no Firestore emulator, no browser test. Firestore is faked in memory
+  (`test/stubs/firestore.ts`) where the logic is real rather than a passthrough.
 - `lib/**/*.generated.ts` and `public/icons/` are gitignored and rebuilt by the `scripts/build-*`
   scripts, wired into `generate` and run before dev/build/test.
 - CLAUDE.md: **MEMORY.md is updated in the same commit as the code it describes.**

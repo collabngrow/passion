@@ -169,7 +169,7 @@ export function AdminShell({ children }: { children: ReactNode }) {
           <Logo size="sm" />
           <div>
             <p className="font-semibold text-on-brand">CollabNGrow</p>
-            <p className="text-xs text-on-brand/90">Passion Analyzer</p>
+            <p className="text-xs text-on-brand">Passion Analyzer</p>
           </div>
         </div>
 
@@ -191,7 +191,7 @@ export function AdminShell({ children }: { children: ReactNode }) {
                       "transition-colors duration-150 whitespace-nowrap",
                       active
                         ? "bg-surface text-brand"
-                        : "text-on-brand/90 hover:bg-on-brand/10",
+                        : "text-on-brand hover:bg-on-brand/10",
                     ].join(" ")}
                   >
                     {item.label}
@@ -203,13 +203,13 @@ export function AdminShell({ children }: { children: ReactNode }) {
         </nav>
 
         <div className="hidden px-4 pb-6 lg:block">
-          <p className="truncate px-4 text-xs text-on-brand/90" title={email ?? ""}>
+          <p className="truncate px-4 text-xs text-on-brand" title={email ?? ""}>
             {email}
           </p>
           <button
             type="button"
             onClick={() => void signOutUser()}
-            className="mt-2 rounded-md px-4 py-2 text-sm text-on-brand/90 hover:bg-on-brand/10"
+            className="mt-2 rounded-md px-4 py-2 text-sm text-on-brand hover:bg-on-brand/10"
           >
             Sign out
           </button>
