@@ -292,6 +292,84 @@ reference.
 
 ---
 
+## Sprint 5 — Participant invitation flow
+
+**Status:** complete
+
+### Data model — `lib/invitations/`, `lib/participants/`
+
+`invitations/{inviteId}` and `participants/{uid}` per §11. `InvitationSummary` is the admin
+projection and **deliberately omits `passwordHash` and `encryptedPassword`** — there is no reason
+for either to reach a browser, and §88 requires encrypted passwords be unreadable to clients.
+
+### Binding is transactional (§15, §78, §79)
+
+`bindInvitation` does its read and write inside one Firestore transaction, so two people opening
+the same invitation simultaneously cannot both bind it. Returns
+`bound` / `already-bound` / `mismatch` / `unavailable`.
+
+`createInvitation` uses `create`, not `set`, and retries on collision — a silent overwrite would
+destroy an existing participant's binding. `createParticipant` likewise, so a duplicate
+submission cannot reset progress to question one.
+
+### Timing-equalised password verification
+
+`/api/invite/[inviteId]/verify-password` runs a **decoy scrypt hash when the invitation does not
+exist**. Without it a missing invitation returns in ~1 ms while a real one costs ~400 ms — a
+timing oracle answering exactly the question §54 forbids. Missing, disabled and wrong-password
+are one indistinguishable outcome.
+
+Rate limited on invitation **and** caller together, so one participant's mistyping cannot lock
+out another's invitation and one client cannot spread attempts across many invitations. Counter
+clears on success.
+
+### Routes
+
+| Route | Purpose |
+| --- | --- |
+| `POST /api/invite/[id]/verify-password` | Verifies, sets the HttpOnly grant cookie |
+| `POST /api/invite/[id]/bind` | Requires grant **and** ID token; binds atomically |
+| `GET /api/invite/[id]/state` | Which step to render |
+| `GET/POST /api/participant/profile` | Onboarding; email taken from the token, never the body |
+| `POST /api/auth/logout` | Clears the grant cookie |
+
+`/state` returns `password` for an invitation that does not exist, identically to one that is
+merely locked, so it cannot enumerate invitations. Logout is deliberately unauthenticated —
+someone whose token already expired must still be able to finish logging out, and clearing your
+own cookie grants nothing.
+
+### UI
+
+`app/invite/[inviteId]/page.tsx` does **no** server-side existence check; rendering the password
+step for every id is what stops the route enumerating invitations (§54). `InviteFlow` renders
+whichever step the server reports. A mismatch shows the §17 wording without ever naming the
+bound account, and `TroubleSigningIn` appears on every failure surface (§17, §20, §63).
+
+### Onboarding carries feedback survey Q2
+
+Built here rather than in S9.5, since the onboarding form exists here and adding a step later
+would mean rebuilding it. `lib/feedback/questions.ts` holds the option sets; values are pinned by
+test because they are persisted and renumbering would reinterpret collected responses.
+
+**The Q2 step states plainly that the exercise is free and nothing will be charged.** Asking
+about price at the start of a free invitation-only experience reads as a paywall unless
+explicitly disarmed — that copy is functional, not decorative, and a test asserts it says so.
+Answering is optional.
+
+### Note on a lint suppression
+
+`InviteFlow` carries one `react-hooks/set-state-in-effect` disable. The rule flags any
+effect-called function containing `setState`, and cannot see that every `setState` in `refresh`
+happens after an awaited fetch rather than synchronously. Fetch-on-mount is the intended pattern;
+an `active` flag guards against a late resolution landing after unmount.
+
+### Verification
+
+`npm run build`, `npm run lint`, `npx tsc --noEmit` clean. **78 tests passing** (up from 70).
+Six routes building.
+
+---
+
 ## Environment variables
 
 Present in `.env`: seven `NEXT_PUBLIC_FIREBASE_*`, plus `GEMINI_API_KEY_1`, `GEMINI_API_KEY_2`,
@@ -316,4 +394,4 @@ Still required before the application can run end-to-end:
 
 ## Next
 
-Sprint 5 — participant invitation flow: password screen, grant cookie, transactional UID binding, onboarding.
+Sprint 6 — admin dashboard: invitation management, reveal behind reauthentication, rotation, share.

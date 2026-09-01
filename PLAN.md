@@ -186,6 +186,37 @@ Reflective and editorial, with no scores (§61, brand §30): themes, the person 
 what may be holding you back, three priorities, and the next thirty days — culminating in
 **"Who are you choosing to become?"** (§62).
 
+### S9.5 · Feedback survey
+
+Added after the plan was agreed, from `feedback_plan.md`. Three questions, stored in Firestore
+and surfaced in the admin dashboard.
+
+**Q2 is asked at onboarding, not with the survey.** The source document labels Q2 as measuring
+willingness to pay *before* the revelations, but places the whole survey behind them — as
+written, Q2 and Q3 would both be post-exposure and the "value perception shift" chart would
+compare two answers to the same condition. So Q2 is asked once at onboarding, before question 1
+of the exercise, and replayed into the survey **greyed out and read-only**, pre-filled from
+their earlier answer, so the participant can see their own shift.
+
+**Q2 must state plainly that the exercise is free.** Asking what someone would pay, at the very
+start of an invitation-only experience, reads as a paywall unless it is explicitly disarmed. The
+step carries a clear, prominent line that this exercise is free, that they will not be charged
+anything, and that the question is asked only to understand what a price point might be. Without
+it the question deters participants and sours the opening of a reflective experience.
+
+- The Q2 onboarding step is built in **S5** alongside the rest of onboarding, since the
+  onboarding form exists there and adding a step afterwards would mean rebuilding it. S9.5 adds
+  the post-revelation survey and the admin tab.
+- `participants/{uid}.willingnessToPay` captures Q2 at onboarding.
+- `feedbackResponses/{uid}` holds the submitted survey; one per participant, not resubmittable.
+- The survey stays locked until the synthesis has been generated and viewed.
+- Admin gains a Feedback tab: responses table plus the four analyses in the source document
+  (Q1 distribution, Q2 vs Q3 shift, average perceived worth with "Priceless" counted
+  separately, summary stat cards).
+
+Follows the same brand and accessibility rules as the rest of the product — radio groups with
+real labels, no colour-only state, and the survey must not read as a paywall.
+
 ### S10 · Progressive web app
 
 `app/manifest.ts`, icons generated from `logo.png` with `sharp` (192, 512, maskable,
