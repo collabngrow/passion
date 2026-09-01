@@ -206,7 +206,7 @@ rather than with an opaque runtime error.
 | `GEMINI_API_KEY_2` | no | **yes** | Extends the quota fallback |
 | `GEMINI_API_KEY_3` | no | **yes** | Extends the quota fallback |
 | `ADMIN_EMAIL` | no | no | Defaults to `collabwinwin@gmail.com`. Set it explicitly so the administrator is stated, not inherited |
-| `NEXT_PUBLIC_APP_URL` | no | no | Falls back to `VERCEL_URL`, then `localhost`. Set it, or invitation links are built from whichever deployment URL served the request |
+| `NEXT_PUBLIC_APP_URL` | no | no | Read by `appUrl()` in `lib/env.ts`, which nothing currently calls. Safe to omit |
 
 `NEXT_PUBLIC_FIREBASE_MEASUREMENT_ID` appears in `.env.example` because the
 Firebase console emits it. Nothing reads it — there is no Analytics in this
@@ -257,10 +257,12 @@ Vercel, from the repository.
 1. Import the project. The framework preset is detected; no build overrides.
 2. Add every variable from the table above under **Settings → Environment
    Variables**, for Production and Preview.
-3. Set `NEXT_PUBLIC_APP_URL` to the deployed origin. Invitation links are built
-   from it, so a stale value produces links pointing at the wrong host.
-4. Add the deployed domain to **Firebase → Authentication → Settings → Authorized
+3. Add the deployed domain to **Firebase → Authentication → Settings → Authorized
    domains**, or Google sign-in fails there with an unhelpful error.
+4. Nothing needs to be told the deployed URL. Invitation links are built in the
+   browser from `window.location.origin` (`components/admin/InvitationsPanel.tsx`),
+   deliberately, so a link copied from a preview deployment points at that
+   deployment rather than at production.
 5. Deploy the Firestore rules separately — Vercel does not deploy them:
    ```bash
    npm run deploy:rules

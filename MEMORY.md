@@ -1231,8 +1231,16 @@ once `deploy:rules` was added to `package.json`.
    measures it against a real key.
 2. **The Vercel environment variables**, from the corrected table in `README.md`. Required:
    the six `NEXT_PUBLIC_FIREBASE_*` values, `FIREBASE_CLIENT_EMAIL`, `FIREBASE_PRIVATE_KEY`,
-   `INVITATION_PASSWORD_ENCRYPTION_KEY`, `INVITE_GRANT_SECRET`, `GEMINI_API_KEY_1`. Set
-   `ADMIN_EMAIL` and `NEXT_PUBLIC_APP_URL` explicitly even though both have fallbacks.
+   `INVITATION_PASSWORD_ENCRYPTION_KEY`, `INVITE_GRANT_SECRET`, `GEMINI_API_KEY_1`, plus
+   `ADMIN_EMAIL` -- which has a fallback, but an administrator inherited from a literal in
+   `lib/env.ts` should be stated rather than assumed.
+
+   **`NEXT_PUBLIC_APP_URL` is not needed.** S14 documented it as the source of invitation
+   links; it is not. `InvitationsPanel` builds them in the browser from
+   `window.location.origin`, deliberately, so a link copied from a preview deployment points
+   at that deployment. `appUrl()` in `lib/env.ts` reads the variable and **nothing calls
+   `appUrl()`** -- dead code, left in place and noted rather than removed. `README.md` said
+   the opposite in two places and now says this.
 3. **The deployed domain in Firebase → Authentication → Authorized domains**, or Google
    sign-in fails there with an unhelpful error.
 4. **`npm run deploy:rules` after any rules change.** Vercel does not deploy Firestore rules.
