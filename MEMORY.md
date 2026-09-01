@@ -240,6 +240,58 @@ grant rejection, forged-signature rejection and expiry.
 
 ---
 
+## Sprint 4 — Authentication and admin authorization
+
+**Status:** complete
+
+### Server verification — `lib/auth/verify.ts`
+
+Every privileged route derives identity from a Firebase ID token verified against Google's
+public keys by the Admin SDK. Nothing is taken from the client (§90).
+
+- `verifyRequest` — reads the bearer token, verifies with `checkRevoked: true` so a signed-out
+  or disabled account cannot continue on a token that has not yet expired.
+- `requireUser` — any authenticated user.
+- `requireAdmin` — compares the **verified token's** email to `ADMIN_EMAIL` and requires
+  `email_verified`, so an unverified account claiming the admin address cannot pass (§21).
+  Denials log the uid, never the address (§52).
+- `requireFreshAuth` — checks `auth_time`, which Firebase sets and the client cannot influence.
+  Default window 5 minutes, gating reveal and rotate (§25, §26). **A token with no `auth_time`
+  is rejected**, since treating it as fresh would make the reveal gate bypassable.
+
+### Error mapping — `lib/http.ts`
+
+`ApiError` carries a public message chosen for a human plus an internal message for the log.
+`withErrorHandling` wraps every route: an unexpected throw is logged and answered with a generic
+sentence, because an unhandled error is by definition one nobody wrote a safe message for
+(§74, brand §20). Error responses are `no-store`.
+
+`genericAuthFailure()` is deliberately identical for a wrong password, an unknown invitation and
+a disabled invitation, so responses never disclose which (§54). A test asserts the message
+mentions none of "password", "invitation", "exist" or "found", and that an internal
+`FirebaseError: permission-denied on /invitations/…` never reaches the client.
+
+### Client — `lib/auth/client.ts`, `components/auth/`
+
+Google sign-in, real `reauthenticateWithPopup` for §26 (not a modal that merely looks like one),
+sign-out, and `apiFetch` which attaches the ID token and normalises network failures into the
+same shape as server errors so no caller distinguishes them.
+
+`useAuthState` exposes a `loading` flag. It matters for the PWA: on reopen there is a moment
+where the user is signed in but not yet known, and rendering a signed-out view during it would
+look exactly like the logout §18 promises will not happen.
+
+`GoogleButton` keeps Google's own mark colours — the single place the brand palette gives way,
+because a recoloured Google logo reads as untrustworthy on precisely the screen that needs
+trust. `TroubleSigningIn` carries the §17/§20/§63 support routes and prefills the invitation
+reference.
+
+### Verification
+
+`npm run build`, `npm run lint`, `npx tsc --noEmit` clean. **70 tests passing** (up from 56).
+
+---
+
 ## Environment variables
 
 Present in `.env`: seven `NEXT_PUBLIC_FIREBASE_*`, plus `GEMINI_API_KEY_1`, `GEMINI_API_KEY_2`,
@@ -264,4 +316,4 @@ Still required before the application can run end-to-end:
 
 ## Next
 
-Sprint 4 — authentication and admin authorization: Google sign-in, requireUser / requireAdmin / requireFreshAuth.
+Sprint 5 — participant invitation flow: password screen, grant cookie, transactional UID binding, onboarding.
