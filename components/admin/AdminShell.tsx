@@ -24,14 +24,28 @@ import { SignInCancelled, apiFetch, signInWithGoogle, signOutUser } from "@/lib/
  * in the client bundle to compare against (§89).
  */
 
-const NAV = [
+type NavItem = {
+  href: string;
+  label: string;
+  /**
+   * Shown in the list only from `lg` up.
+   *
+   * Exercises is reference material rather than a section of the dashboard, and
+   * on a phone it earns the inverted button beside the wordmark instead --
+   * which also keeps the list at six, so it fills two rows of three exactly.
+   */
+  desktopOnly?: boolean;
+};
+
+const NAV: NavItem[] = [
   { href: "/admin", label: "Overview" },
+  { href: "/admin/exercises", label: "Exercises", desktopOnly: true },
   { href: "/admin/invitations", label: "Invitations" },
   { href: "/admin/participants", label: "Participants" },
   { href: "/admin/feedback", label: "Feedback" },
   { href: "/admin/ai", label: "AI configuration" },
   { href: "/admin/settings", label: "Settings" },
-] as const;
+];
 
 type Gate = "checking" | "signed-out" | "denied" | "allowed" | "unavailable";
 
@@ -184,7 +198,7 @@ export function AdminShell({ children }: { children: ReactNode }) {
             className={
               "ml-auto shrink-0 rounded-md border border-surface bg-surface " +
               "px-3 py-2 text-sm font-semibold text-brand " +
-              "transition-colors duration-150 hover:bg-brand-soft"
+              "transition-colors duration-150 hover:bg-brand-soft lg:hidden"
             }
           >
             Exercises
@@ -207,7 +221,7 @@ export function AdminShell({ children }: { children: ReactNode }) {
                   : pathname.startsWith(item.href);
 
               return (
-                <li key={item.href}>
+                <li key={item.href} className={item.desktopOnly ? "hidden lg:block" : undefined}>
                   <Link
                     href={item.href}
                     aria-current={active ? "page" : undefined}

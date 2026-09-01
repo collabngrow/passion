@@ -1395,9 +1395,16 @@ Every item carries a white outline. The outline is the constant and the fill is 
 the current page inverts to white-on-rose-reversed, which is a stronger signal than a tint.
 `aria-current` still carries the state for anyone the inversion does not reach (S73).
 
-`Exercises` sits in the empty space beside the wordmark, inverted against the navigation on
-purpose: it opens the exercise content, which is reference material rather than another section
-of the dashboard, and the inversion says so before the label is read.
+`Exercises` behaves differently by width, which is the point rather than an inconsistency.
+
+From `lg` up it is an ordinary navigation item, second in the list under Overview, styled like
+every other. The sidebar there is 256px of mostly empty column: a list is where a destination
+belongs, and the inverted button beside the wordmark was crowding the CollabNGrow wordmark into
+an ellipsis.
+
+Below `lg` it is that inverted button instead, in the space beside the wordmark that the
+horizontal header actually has. It also keeps the list at six items, which is what makes the
+`grid-cols-3` fill two even rows -- a seventh would strand one item alone on a third row.
 
 `/admin/exercises` lists the catalogue and the exercise part by part, each part collapsing to
 its questions. Forty-three questions across fourteen parts is a document to scan, not a flow to
