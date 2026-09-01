@@ -28,8 +28,7 @@ const NAV = [
   { href: "/admin", label: "Overview" },
   { href: "/admin/invitations", label: "Invitations" },
   { href: "/admin/participants", label: "Participants" },
-  // "AI configuration" is added in S8, alongside the model router it configures.
-  // Listing it before then would be a link to a stub.
+  { href: "/admin/ai", label: "AI configuration" },
   { href: "/admin/settings", label: "Settings" },
 ] as const;
 

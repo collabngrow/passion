@@ -19,6 +19,7 @@ dist/
 !.env.example
 serviceAccount*.json
 *-firebase-adminsdk-*.json
+FIREBASE_PRIVATE_KEY.json
 
 # generated content pipelines
 lib/**/*.generated.ts

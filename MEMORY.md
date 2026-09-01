@@ -488,6 +488,90 @@ device. The Next lint rule against this is suppressed with that reasoning.
 
 ---
 
+## Sprint 8 — AI engine
+
+**Status:** complete
+
+### Model ids were discovered, not guessed
+
+§34 forbids hard-coding obsolete model names, so the live catalogue was queried with the
+project's own key before writing any defaults. The sequence §34 asks for turns out to name
+**models that genuinely exist**, so it is used verbatim:
+
+1. `gemini-3.6-flash`
+2. `gemini-3.5-flash`
+3. `gemini-3.5-flash-lite`
+
+`gemini-3.7-flash` is also available and can be added through the admin UI without a code
+change — which is precisely the capability §34 asks for. Flash-class throughout: the task runs
+~15 times per participant and a Pro model would cost far more than the quality bar needs.
+
+### Router — `lib/ai/router.ts`
+
+Candidates are (key pool × model) in configured order: every enabled model on key 1, then the
+same sequence on key 2, then key 3 (§35). Hard ceiling of 12 attempts regardless of
+configuration size.
+
+**Failure classification is the substance of §36.** Advance on quota, rate limit, 404
+model-unavailable, 5xx and transport faults. Abort on 400/401/403, invalid argument, bad API
+key, and safety refusals. **Unrecognised errors abort deliberately** — an unknown error is more
+likely a bug in the request than a capacity problem, and retrying a malformed request across
+nine candidates burns quota to produce nine identical failures while hiding the real cause
+behind what looks like an outage.
+
+An empty completion is treated as *advance*, since that is a capacity or filtering artefact
+rather than a request defect.
+
+Logs carry model, pool id and the classification — never the prompt or the participant's text
+(§52).
+
+### Prompts — `lib/ai/prompts.ts`
+
+Layered `FRAMEWORK CONTEXT | EXERCISE | PARTICIPANT DATA` with the §38F authority order stated
+explicitly. Participant text is fenced with a **per-request random nonce**, because fencing
+alone is defeatable — a participant can write the closing delimiter, but cannot guess the nonce
+(§38M).
+
+The system instruction encodes each prohibition against the failure it prevents: no source
+naming (§38I), no framework vocabulary, no diagnosis (§40), no types, no false certainty (§41),
+no invented detail, no generic encouragement (§42, §38G), and participant text never acts as
+instruction.
+
+### Structured output — `lib/ai/schema.ts`
+
+zod-validated before anything is stored or rendered (§38N). An unvalidated response is untrusted
+input, and storing a malformed one would break the result page for someone who cannot regenerate
+it. Validation errors report **field paths only, never content** — a test asserts a participant's
+words cannot leak into an error message.
+
+The synthesis field is named `philosophicalLens`, not after the framework's source: field names
+surface in exports and admin views, and §38I covers those too.
+
+### Idempotency and cost (§77, §92, §93)
+
+Interpretation document id is `sectionId_fingerprint(answers)`, so resubmitting identical answers
+returns the stored result and edited answers produce a new one. The synthesis stores its
+`answersFingerprint` and `GET` never generates — opening the result page cannot spend a call.
+Regeneration writes a new history document alongside `active`, so nothing is silently
+overwritten (§93).
+
+### Failure experience (§75)
+
+Answers are saved by a **separate** request before any generation runs, so an AI outage can never
+cost someone their writing. Every AI failure maps to the same reassurance rather than a
+technical error.
+
+### Verification
+
+`npm run build`, `npm run lint`, `npx tsc --noEmit` clean. **95 tests passing** (up from 78),
+including 17 covering failure classification and output validation.
+
+**Not yet exercised against the live API.** The router is complete but no real generation has
+run — that needs the Firebase service account, since every AI route sits behind
+`requireParticipant`.
+
+---
+
 ## Environment variables
 
 Present in `.env`: seven `NEXT_PUBLIC_FIREBASE_*`, plus `GEMINI_API_KEY_1`, `GEMINI_API_KEY_2`,
@@ -512,4 +596,4 @@ Still required before the application can run end-to-end:
 
 ## Next
 
-Sprint 8 — AI engine: model router with key/model fallback, prompt layering, structured output, synthesis.
+Sprint 9 — final result UI, then S9.5 feedback survey, S10 PWA, S11 Firestore rules.
