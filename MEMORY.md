@@ -434,6 +434,60 @@ configures. Listing it now would be a link to a stub, which §98 rules out.
 
 ---
 
+## Sprint 7 — Exercise engine
+
+**Status:** complete
+
+### The journey gate — `lib/journey/guard.ts`
+
+Every journey route re-establishes all three facts per request (§90):
+
+1. a verified Firebase ID token,
+2. an invitation bound to that uid and still `active` (§31),
+3. a grant cookie for **that same invitation**, proving the password step.
+
+(3) is what makes §19 work. Firebase's session survives a refresh, so without the cookie a
+participant who logged out would be silently let back in.
+
+### The exercise is served, not bundled
+
+`/api/journey/state` returns the exercise rather than importing it into the client bundle. It is
+~90 KB of generated content that only an authenticated, password-verified participant should
+receive; bundling it statically would put the whole exercise within reach of anyone who loaded
+the page (§91).
+
+### Autosave (§44)
+
+Debounced at 1.5 s — never per keystroke. Answers are held in a ref so moving between questions
+is instant, with a flush before each navigation and on unmount so a pending edit is never lost.
+Status reads `Saving… / Saved / Unable to save — retrying`, `aria-live="polite"` and deliberately
+quiet.
+
+Clearing an answer **removes** it from `answered`, so progress stays honest rather than counting
+a question the participant emptied. Unknown question ids are rejected, keeping the answers
+collection to the real exercise.
+
+`POST /api/journey/answer` saves and returns `sectionComplete`, which is how the client will know
+a section reflection can be generated (§59). Saving is a separate request from interpretation, so
+per §75 an AI outage can never cost a participant their writing.
+
+### Logout (§19)
+
+`LogoutDialog` carries the exact §19 wording, since there is no password recovery (§20) and a
+participant should know what returning costs before choosing it. It clears the grant cookie
+**first**, then the Firebase session — if the page unloads midway, ending the password proof
+without the session is the safer half-state.
+
+It finishes with a **full document navigation, deliberately**. A soft route change would leave
+the participant's loaded answers alive in React state, which matters on a shared or borrowed
+device. The Next lint rule against this is suppressed with that reasoning.
+
+### Verification
+
+`npm run build`, `npm run lint`, `npx tsc --noEmit` clean, 78 tests passing. 20 routes building.
+
+---
+
 ## Environment variables
 
 Present in `.env`: seven `NEXT_PUBLIC_FIREBASE_*`, plus `GEMINI_API_KEY_1`, `GEMINI_API_KEY_2`,
@@ -458,4 +512,4 @@ Still required before the application can run end-to-end:
 
 ## Next
 
-Sprint 7 — exercise engine: one question per screen, debounced autosave, resume.
+Sprint 8 — AI engine: model router with key/model fallback, prompt layering, structured output, synthesis.

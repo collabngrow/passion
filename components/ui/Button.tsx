@@ -1,4 +1,4 @@
-import type { ButtonHTMLAttributes, ReactNode } from "react";
+import type { ComponentPropsWithRef, ReactNode } from "react";
 
 /**
  * Button system.
@@ -35,7 +35,9 @@ const SIZES: Record<Size, string> = {
   lg: "min-h-13 px-7 text-base",
 };
 
-type ButtonProps = ButtonHTMLAttributes<HTMLButtonElement> & {
+// ComponentPropsWithRef rather than ButtonHTMLAttributes: React 19 passes ref
+// as an ordinary prop, and dialogs need to move focus onto a button.
+type ButtonProps = ComponentPropsWithRef<"button"> & {
   variant?: Variant;
   size?: Size;
   fullWidth?: boolean;
