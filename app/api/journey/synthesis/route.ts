@@ -1,5 +1,9 @@
 import { generateSynthesis, getStoredSynthesis } from "@/lib/ai/generate";
-import { AiNotConfiguredError, AllModelsFailedError } from "@/lib/ai/router";
+import {
+  AiNotConfiguredError,
+  AllModelsFailedError,
+  GenerationTimedOutError,
+} from "@/lib/ai/router";
 import { InvalidAiOutputError } from "@/lib/ai/schema";
 import { totalQuestions } from "@/lib/exercise";
 import { ApiError, jsonOk, rateLimited, withErrorHandling } from "@/lib/http";
@@ -8,11 +12,13 @@ import { AI_GENERATION_POLICY, consumeAttempt } from "@/lib/security/rate-limit"
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
-// The synthesis reasons across every answer; it is the longest call the product
-// makes.
-// The synthesis reasons across every answer and emits sixteen sections;
-// it is by far the longest call the product makes.
-export const maxDuration = 300;
+// The synthesis reasons across every answer and emits sixteen sections; it is by
+// far the longest call the product makes. 58 rather than 300 because Vercel's
+// Hobby plan caps a function at 60 seconds and kills it there with a 504 -- the
+// participant would see a network error rather than the copy below, and the
+// Firestore write could be cut in half. SYNTHESIS_BUDGET_MS stops the model call
+// before this cap is reached, so the timeout is ours to answer.
+export const maxDuration = 58;
 
 /**
  * The final synthesis (master_prompt.md §60, §92).
@@ -72,6 +78,7 @@ export const POST = withErrorHandling("journey/synthesis", async (request: Reque
   } catch (error) {
     if (
       error instanceof AllModelsFailedError ||
+      error instanceof GenerationTimedOutError ||
       error instanceof AiNotConfiguredError ||
       error instanceof InvalidAiOutputError
     ) {

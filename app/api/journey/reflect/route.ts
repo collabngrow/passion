@@ -1,5 +1,9 @@
 import { generateSectionInterpretation } from "@/lib/ai/generate";
-import { AiNotConfiguredError, AllModelsFailedError } from "@/lib/ai/router";
+import {
+  AiNotConfiguredError,
+  AllModelsFailedError,
+  GenerationTimedOutError,
+} from "@/lib/ai/router";
 import { InvalidAiOutputError } from "@/lib/ai/schema";
 import { getSection } from "@/lib/exercise";
 import {
@@ -15,10 +19,12 @@ import { AI_GENERATION_POLICY, consumeAttempt } from "@/lib/security/rate-limit"
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
-// Interpretation is a model call, not a typical request.
-// Measured 18s with a bounded thinking budget, and far longer without
-// one. 120s leaves headroom for a slow provider.
-export const maxDuration = 120;
+// Interpretation is a model call, not a typical request. Measured 18s with a
+// bounded thinking budget, and far longer without one. 58 rather than 120
+// because Vercel's Hobby plan caps a function at 60 seconds; anything above
+// that is a number the platform will not honour. INTERPRETATION_BUDGET_MS stops
+// the model call first, so a slow provider produces our 503 and not a 504.
+export const maxDuration = 58;
 
 /**
  * Generates a section reflection (master_prompt.md §59, §75).
@@ -68,6 +74,7 @@ export const POST = withErrorHandling("journey/reflect", async (request: Request
   } catch (error) {
     if (
       error instanceof AllModelsFailedError ||
+      error instanceof GenerationTimedOutError ||
       error instanceof AiNotConfiguredError ||
       error instanceof InvalidAiOutputError
     ) {

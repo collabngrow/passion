@@ -35,6 +35,25 @@ export type GenerationRequest = {
    * live smoke test. Note that a budget of 0 is rejected by these models.
    */
   thinkingBudget?: number;
+  /**
+   * Wall-clock budget for the whole fallback walk, in milliseconds.
+   *
+   * Vercel kills a function at its `maxDuration` and the caller gets a 504 with
+   * no explanation, mid-write. A budget shorter than that cap means the last
+   * word is ours instead: the walk stops, the route answers 503 with copy that
+   * says the participant's writing is saved, and nothing is half-stored.
+   */
+  budgetMs?: number;
+  /**
+   * Cap on any single provider call, in milliseconds.
+   *
+   * Without it one hung request consumes the whole budget and no fallback
+   * candidate is ever reached -- the failure S36 exists to prevent, arriving by
+   * way of latency rather than an error code. Leave it unset where a slow
+   * response is still a good response and cutting it short would mean the
+   * participant gets nothing at all.
+   */
+  attemptTimeoutMs?: number;
 };
 
 export type GenerationSuccess = {
@@ -56,6 +75,24 @@ export class AllModelsFailedError extends Error {
   }
 }
 
+/**
+ * The budget ran out before any candidate returned.
+ *
+ * Distinct from AllModelsFailedError because nothing failed: the provider may
+ * still have been working. The routes map both to the same reassurance, but the
+ * server log should not claim a model error that did not happen.
+ */
+export class GenerationTimedOutError extends Error {
+  readonly attempts: number;
+  readonly elapsedMs: number;
+  constructor(attempts: number, elapsedMs: number) {
+    super(`Generation budget of ${elapsedMs}ms elapsed after ${attempts} attempt(s).`);
+    this.name = "GenerationTimedOutError";
+    this.attempts = attempts;
+    this.elapsedMs = elapsedMs;
+  }
+}
+
 export class AiNotConfiguredError extends Error {
   constructor(message: string) {
     super(message);
@@ -65,6 +102,14 @@ export class AiNotConfiguredError extends Error {
 
 /** Hard ceiling regardless of configuration size (§36: no infinite retries). */
 const MAX_ATTEMPTS = 12;
+
+/**
+ * Below this much remaining budget, no further candidate is started.
+ *
+ * A call begun with two seconds left cannot finish, and its abort would be
+ * logged as a model failure that never happened.
+ */
+const MIN_ATTEMPT_MS = 5_000;
 
 type Classification = "advance" | "abort";
 
@@ -106,6 +151,7 @@ export function classifyFailure(error: unknown): Classification {
     "etimedout",
     "econnreset",
     "socket hang up",
+    "aborted",
     "not found",
     "is not supported",
   ];
@@ -203,12 +249,33 @@ export async function generate(
     );
   }
 
+  const startedAt = Date.now();
+  const deadline =
+    request.budgetMs === undefined ? null : startedAt + request.budgetMs;
+
   let attempts = 0;
   let lastMessage = "no attempts made";
 
   for (const candidate of candidates) {
     if (attempts >= MAX_ATTEMPTS) break;
+
+    // Checked before the attempt, not after: the point is to stop starting work
+    // that cannot finish inside the function's own lifetime.
+    const remainingMs = deadline === null ? null : deadline - Date.now();
+    if (remainingMs !== null && remainingMs < MIN_ATTEMPT_MS) {
+      throw new GenerationTimedOutError(attempts, Date.now() - startedAt);
+    }
+
     attempts += 1;
+
+    // Whichever is tighter: what is left of the budget, or the per-call cap.
+    const attemptMs = Math.min(
+      request.attemptTimeoutMs ?? Number.POSITIVE_INFINITY,
+      remainingMs ?? Number.POSITIVE_INFINITY,
+    );
+    const abortSignal = Number.isFinite(attemptMs)
+      ? AbortSignal.timeout(attemptMs)
+      : undefined;
 
     try {
       const client = new GoogleGenAI({ apiKey: candidate.apiKey });
@@ -217,6 +284,7 @@ export async function generate(
         model: candidate.model,
         contents: request.prompt,
         config: {
+          ...(abortSignal ? { abortSignal } : {}),
           systemInstruction: request.systemInstruction,
           temperature: request.temperature ?? 0.7,
           maxOutputTokens: request.maxOutputTokens ?? 4096,
@@ -261,5 +329,7 @@ export async function generate(
     }
   }
 
+  // Ran out of candidates rather than out of time, so the budget -- if there was
+  // one -- is not what stopped this.
   throw new AllModelsFailedError(attempts, lastMessage);
 }

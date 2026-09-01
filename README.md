@@ -266,14 +266,24 @@ Vercel, from the repository.
    npm run deploy:rules
    ```
 
-### One open item before production
+### Generation time and the function cap
 
-`app/api/journey/synthesis/route.ts` declares `maxDuration = 300`. **Vercel's
-Hobby plan caps functions at 60 seconds**, so on Hobby a long synthesis is killed
-mid-generation. Either deploy on a plan that permits 300s, or reduce the model's
-thinking budget in `lib/ai/generate.ts` (`thinkingBudget`: 512 for a
-reflection, 2048 for the synthesis) until generation fits inside the cap. The
-reflect route (`maxDuration = 120`) has the same consideration.
+Vercel's Hobby plan kills a function at 60 seconds. Both AI routes therefore
+declare `maxDuration = 58`, and the model call is given a shorter budget still —
+`GENERATION_BUDGET_MS` (52s) in `lib/ai/generate.ts` — so the deadline is reached
+inside the application, which answers 503 with copy saying the participant's
+writing is saved, rather than by the platform killing the function mid-write.
+
+An interpretation additionally caps any single provider call at 25s, so one hung
+request still leaves room to fall back to the next model. The synthesis has no
+per-call cap on purpose: it is the long call, and cutting a slow-but-working
+response short to preserve room for a retry trades the participant's actual
+result for another chance to fail.
+
+`lib/ai/budget.test.ts` fails if the budget and the routes' `maxDuration` ever
+drift apart, since that relationship is invisible in a diff touching one file.
+
+On a plan with a higher function limit, raise both together in that order.
 
 ---
 
@@ -416,9 +426,12 @@ It is bound to a different Google account. Ask which account they first used —
 the application will not disclose it. If they genuinely cannot reach it, issue a
 new invitation; rotation does not rebind.
 
-**The reflection never finishes generating on Vercel.**
-The `maxDuration = 300` / Hobby 60s conflict described under
-[Deployment](#deployment).
+**The reflection gives up after about a minute.**
+The generation exceeded `GENERATION_BUDGET_MS` and was stopped deliberately, so
+the answers are saved and nothing is half-written. Persistent timeouts mean the
+model is slower than the 60-second function cap allows: lower `thinkingBudget`
+in `lib/ai/generate.ts`, or move to a plan with a higher limit and raise both
+numbers together. See [Deployment](#deployment).
 
 **AI generation fails with all models unavailable.**
 All configured models were exhausted or erroring across all keys. Check quota in

@@ -1124,6 +1124,84 @@ listing; the number here is what `npx next build` prints today.)
 
 ---
 
+## Sprint 14.1 - Generation fits the function cap
+
+**Status:** complete
+
+S14 handed over one open item: `maxDuration = 300` against Vercel's 60-second Hobby cap. The
+owner's decision was to fit inside the cap rather than change plan. Both AI routes now declare
+`maxDuration = 58`.
+
+### Lowering the thinking budget was not, on its own, enough
+
+The instruction was to cut the thinking budget so generation fits in 58 seconds, and the
+synthesis budget did come down -- 2048 to 1024, the one dial that buys wall clock without risk,
+since thinking is charged against the same budget as output and cutting `maxOutputTokens`
+instead would truncate the JSON mid-object and discard the whole generation.
+
+But `thinkingBudget` is denominated in tokens, not seconds, and nothing in the router bounded
+time at all. Nine candidates (three models x three key pools), `MAX_ATTEMPTS` 12, each call
+unbounded. A single slow provider, or two retries, exceeded any cap regardless of what the
+thinking budget said. So a token budget alone could not deliver the guarantee that was asked
+for.
+
+### What actually bounds it
+
+`generate()` now takes `budgetMs` and optional `attemptTimeoutMs`.
+
+- The deadline is checked **before** each candidate, not after. Starting a call with two
+  seconds left cannot succeed, and its abort would be logged as a model failure that never
+  happened. `MIN_ATTEMPT_MS` (5s) is the floor below which the walk stops.
+- Each attempt gets an `AbortSignal.timeout` of whichever is tighter: the remaining budget or
+  the per-call cap. `@google/genai` takes it as `config.abortSignal`, so a hung request is
+  actually cancelled rather than merely abandoned.
+- Running out of time throws `GenerationTimedOutError`, deliberately distinct from
+  `AllModelsFailedError`. Nothing failed -- the provider may still have been working -- and the
+  server log should not claim a model error that did not happen. Both routes map it to the same
+  participant-facing 503 they already used.
+- `"aborted"` joins the transient list in `classifyFailure`, so a cancelled attempt advances
+  rather than aborting the walk.
+
+Numbers: `GENERATION_BUDGET_MS` 52s under a 58s route, leaving 6s for the Firestore reads
+before the call and the writes after it. `INTERPRETATION_ATTEMPT_MS` 25s against a measured 18s
+call, so two attempts fit in the budget and a hung candidate still falls back.
+
+**The synthesis has no per-attempt cap, on purpose.** It is the long call. Cutting a
+slow-but-working response short to preserve room for a retry trades the participant's actual
+result for another chance to fail. A candidate that fails *quickly* still falls back, because
+what the next one gets is the remaining budget rather than a fresh allotment.
+
+### The test caught the first set of numbers
+
+`lib/ai/budget.test.ts` reads `maxDuration` out of both route files -- a route module is not
+importable outside the Next.js runtime -- and checks it against the exported budget. The
+relationship spans two files, so a diff touching only one of them shows nothing wrong.
+
+It failed immediately on the constants written minutes earlier: a 25s per-attempt cap against a
+45s budget does not fit two attempts, which was the entire justification for having a cap. The
+budgets were unified to one constant and raised to 52s. Written before the numbers were
+trusted, not after.
+
+It also pins a floor of 40s on the budget. A budget trimmed towards the 18s measurement would
+start aborting healthy generations, which is worse than the 504 this mechanism exists to
+prevent: the participant waits the full time and still gets nothing.
+
+### Verification
+
+`npx tsc --noEmit`, `npx eslint`, `npx next build` clean. **203 tests passing** across 14 files.
+
+`README.md`'s "one open item before production" is gone, replaced by a description of the
+mechanism, and the troubleshooting entry that pointed at the conflict now explains the
+deliberate timeout instead.
+
+**Not verified, and cannot be here:** that a real synthesis completes inside 52 seconds with
+`thinkingBudget: 1024`. CLAUDE.md permits build checks only. `npm run smoke:ai` runs one real
+generation end to end if the owner wants the measurement; if a synthesis does time out in
+practice, the dial is `thinkingBudget` in `lib/ai/generate.ts`, and the budget test will hold
+the rest in place.
+
+---
+
 ## Handoff — start here
 
 **Done: S0-S14. The build plan is complete.**
@@ -1134,7 +1212,7 @@ listing; the number here is what `npx next build` prints today.)
 | --- | --- |
 | Branch | `main`, pushed to `origin` (`collabngrow/passion`) |
 | Build | `npx next build`, `npx eslint`, `npx tsc --noEmit` all clean |
-| Tests | **197 passing** across 13 files (`npx vitest run`) |
+| Tests | **203 passing** across 14 files (`npx vitest run`) |
 | Routes | 34 listed by the build |
 | Firestore | deny-all rules **live** |
 | Docs | `README.md` complete and corrected against the code (§84, §99) |
@@ -1146,12 +1224,11 @@ once `deploy:rules` was added to `package.json`.
 
 ### What is left, and it is the owner's, not the code's
 
-1. **The Vercel function limit.** `app/api/journey/synthesis/route.ts` declares
-   `maxDuration = 300`; Hobby caps functions at 60 seconds, so a long synthesis is killed
-   mid-generation there. Either a plan that permits 300s, or lower `thinkingBudget` in
-   `lib/ai/generate.ts` until generation fits. `/api/journey/reflect` is at 120s with the same
-   consideration. This is a deployment-plan decision, so it is deliberately not resolved in
-   code.
+1. **Confirm a real synthesis fits 52 seconds.** Resolved in code (Sprint 14.1): both routes
+   are at `maxDuration = 58` with a 52s model budget, and a synthesis that overruns is stopped
+   by us with a 503 rather than by Vercel with a 504. What no build check can show is whether
+   generation actually completes in that window with `thinkingBudget: 1024`. `npm run smoke:ai`
+   measures it against a real key.
 2. **The Vercel environment variables**, from the corrected table in `README.md`. Required:
    the six `NEXT_PUBLIC_FIREBASE_*` values, `FIREBASE_CLIENT_EMAIL`, `FIREBASE_PRIVATE_KEY`,
    `INVITATION_PASSWORD_ENCRYPTION_KEY`, `INVITE_GRANT_SECRET`, `GEMINI_API_KEY_1`. Set
