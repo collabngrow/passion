@@ -45,10 +45,17 @@ type ReflectionState =
 type JourneyState = {
   participant: {
     name: string;
-    progress: { answered: string[]; currentQuestionId: string };
+    progress: {
+      answered: string[];
+      currentQuestionId: string;
+      /** Parts already analysed, and therefore closed to editing (§59, §77). */
+      reflectedSections: string[];
+    };
   };
   exercise: Exercise;
   answers: Record<string, string>;
+  /** Analyses already produced, by section id. */
+  reflections: Record<string, Interpretation>;
 };
 
 export function JourneyFlow() {
@@ -66,6 +73,12 @@ export function JourneyFlow() {
   // moment of pausing: answersRef is a ref, so reading it during render would
   // both break the rules of hooks and go stale the next time it changed.
   const [breakState, setBreakState] = useState<{ answeredCount: number } | null>(null);
+
+  // Mirrors the server's `reflectedSections` and stored analyses, so a part
+  // closes the moment its analysis arrives rather than on the next page load.
+  // The server decides; this only keeps the screen honest in between.
+  const [reflections, setReflections] = useState<Record<string, Interpretation>>({});
+  const [closedParts, setClosedParts] = useState<string[]>([]);
 
   // Answers held locally so moving between questions is instant and does not
   // depend on a round trip.
@@ -94,6 +107,8 @@ export function JourneyFlow() {
 
       answersRef.current = result.data.answers;
       setState(result.data);
+      setReflections(result.data.reflections ?? {});
+      setClosedParts(result.data.participant.progress.reflectedSections ?? []);
       setCurrentId(result.data.participant.progress.currentQuestionId);
       setDraft(result.data.answers[result.data.participant.progress.currentQuestionId] ?? "");
     },
@@ -182,8 +197,17 @@ export function JourneyFlow() {
   }, [flush]);
 
   function handleChange(value: string) {
+    // A closed part is readOnly, so this should be unreachable. Guarded anyway:
+    // the server would refuse the write with a 409, and the participant would
+    // watch "Unable to save" appear under text they cannot change.
+    if (current && isClosed(current.sectionId)) return;
     setDraft(value);
     if (current) scheduleSave(current.id, value);
+  }
+
+  /** True once this part's analysis exists: the answers behind it are fixed. */
+  function isClosed(sectionId: string): boolean {
+    return closedParts.includes(sectionId);
   }
 
   async function goTo(question: ExerciseQuestion) {
@@ -228,11 +252,21 @@ export function JourneyFlow() {
       return;
     }
 
-    setReflection(
-      result.data.interpretation
-        ? { status: "ready", interpretation: result.data.interpretation }
-        : { status: "skipped" },
+    if (!result.data.interpretation) {
+      setReflection({ status: "skipped" });
+      return;
+    }
+
+    // The server has just closed this part; mirror it here so the answers lock
+    // immediately rather than on the next load.
+    setReflections((current) => ({
+      ...current,
+      [sectionId]: result.data.interpretation as Interpretation,
+    }));
+    setClosedParts((current) =>
+      current.includes(sectionId) ? current : [...current, sectionId],
     );
+    setReflection({ status: "ready", interpretation: result.data.interpretation });
   }
 
   /**
@@ -283,6 +317,9 @@ export function JourneyFlow() {
   const previous = position > 1 ? questions[position - 2] : null;
   const next = position < total ? questions[position] : null;
 
+  const partClosed = section ? closedParts.includes(section.id) : false;
+  const storedReflection = section ? reflections[section.id] : undefined;
+
   const sectionQuestionIds = section?.questionIds ?? [];
   const firstInSection = sectionQuestionIds[0] === current.id;
   const lastInSection =
@@ -297,10 +334,22 @@ export function JourneyFlow() {
   const partOffersReflection =
     sectionQuestionIds.length > 0 &&
     sectionQuestionIds[sectionQuestionIds.length - 1] !== questions[total - 1]?.id;
-  const offerReflectionNow = lastInSection && partOffersReflection;
+  const offerReflectionNow = lastInSection && partOffersReflection && !partClosed;
   const reflectionPending =
     offerReflectionNow &&
     (reflection.status === "idle" || reflection.status === "loading");
+
+  /*
+   * What to print at the end of a closed part: the stored analysis, straight
+   * from the journey state. No button, and no request -- the whole point of
+   * closing the part is that the answers cannot change, so neither can this.
+   */
+  const reflectionToShow =
+    reflection.status === "ready"
+      ? reflection.interpretation
+      : lastInSection && partClosed
+        ? storedReflection
+        : undefined;
 
   return (
     <>
@@ -405,6 +454,7 @@ export function JourneyFlow() {
             title={section.title}
             questionCount={sectionQuestionIds.length}
             offersAnalysis={partOffersReflection}
+            closed={partClosed}
           />
         ) : null}
 
@@ -429,16 +479,30 @@ export function JourneyFlow() {
             id="answer"
             value={draft}
             onChange={(e) => handleChange(e.target.value)}
+            readOnly={partClosed}
+            aria-describedby={partClosed ? "part-closed" : undefined}
             rows={12}
-            placeholder="Write freely…"
-            spellCheck
+            placeholder={partClosed ? "" : "Write freely…"}
+            spellCheck={!partClosed}
             className={
-              "block w-full resize-y rounded-lg border border-line-strong bg-surface " +
+              "block w-full resize-y rounded-lg border border-line-strong " +
               "px-5 py-4 text-[1.0625rem] leading-relaxed text-ink " +
               "placeholder:text-ink-soft/60 focus:outline-none " +
-              "focus-visible:border-brand focus-visible:ring-2 focus-visible:ring-brand/30"
+              "focus-visible:border-brand focus-visible:ring-2 focus-visible:ring-brand/30 " +
+              (partClosed ? "bg-canvas" : "bg-surface")
             }
           />
+
+          {/*
+            Said plainly rather than left to a greyed-out box: a field that
+            silently refuses typing reads as broken (§74, brand §20).
+          */}
+          {partClosed ? (
+            <p id="part-closed" className="mt-2 text-sm text-ink-soft">
+              This part is complete. Your answers are kept as they were when your
+              analysis was written.
+            </p>
+          ) : null}
 
           {/* §44: subtle, and never the loudest thing on screen. */}
           <p
@@ -454,17 +518,17 @@ export function JourneyFlow() {
           </p>
         </div>
 
-        {offerReflectionNow && reflection.status === "idle" ? (
+        {offerReflectionNow && reflection.status === "idle" && !partClosed ? (
           <p className="mt-6 text-sm leading-relaxed text-ink-soft">
             That&apos;s the last question in this part. When you&apos;re ready,
             we&apos;ll read back through what you wrote in it.
           </p>
         ) : null}
 
-        {reflection.status === "ready" ? (
+        {reflectionToShow ? (
           <SectionReflection
             sectionTitle={section?.title ?? ""}
-            interpretation={reflection.interpretation}
+            interpretation={reflectionToShow}
           />
         ) : null}
 

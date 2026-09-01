@@ -1314,12 +1314,58 @@ above a card that printed it again, three lines apart. That reads as a rendering
 emphasis, so the header's title is suppressed on the screen where `PartIntro` appears. The
 progress counter stays -- it is the one number that is still doing work there.
 
+### A part closes when its analysis is written
+
+Raised from testing: returning to a finished part still offered `See your analysis`, and
+clicking it paused before the panel appeared. It was **not** generating again -- the document id
+is `sectionId_fingerprint(answers)` and an existing document short-circuits before any model call
+(S77, S92). The pause was the Firestore read and a cold function.
+
+But the question exposed the real hazard. The reflection is keyed by a fingerprint of the
+answers, so editing one character in a finished part changes the id, and the next read spends a
+**new model call** to replace an analysis the participant has already read. Worse, until it did,
+the stored analysis would describe answers that no longer existed.
+
+So a part now closes at the moment its analysis is generated.
+
+`progress.reflectedSections` -- declared in `ParticipantProgress`, initialised to `[]`, surfaced
+in `ParticipantView`, and until now **never written and never read**, the same dangling shape as
+`sectionComplete` before it -- is the field this uses. It was reserved for exactly this.
+
+- `markSectionReflected` writes it with `arrayUnion`, so two requests arriving together cannot
+  drop one another's section. Written **after** the generation succeeds, so a failed attempt
+  never locks answers behind an analysis that does not exist.
+- `POST /api/journey/answer` refuses a write to a closed part with 409 `section_locked`. Enforced
+  on the server, not only in the UI (S90): the readOnly textarea is a courtesy. The check costs
+  nothing, because `requireParticipant` has already loaded the participant.
+- Nothing is locked when a part was left blank. There is nothing to protect, and a participant
+  who skipped a part should still be able to come back and write it.
+
+### The analysis prints itself now
+
+`GET /api/journey/state` returns the stored analyses by section, so a returning participant sees
+one without any request that could decide to generate. Only the prose is sent: S76 keeps the
+model and provider to the administrator, and `promptVersion` / `knowledgeBaseVersion` describe
+the framework rather than the participant, which S38I keeps out of reach.
+
+At the end of a closed part the panel is simply there -- no button, and no request. Answers in it
+render read-only on a canvas-toned field with a line saying why, because a field that silently
+refuses typing reads as broken (S74, brand S20). `PartIntro` switches tense for a closed part and
+drops the break promise, which would otherwise imply there was still something to save.
+
+The client mirrors both facts in state so a part closes the instant its analysis arrives rather
+than on the next load. The server remains the decision.
+
 ### Verification
 
 `npx tsc --noEmit`, `npx eslint`, `npx next build` clean. **203 tests passing.**
 
-**Not verified:** none of the reflection, the break card or the part introduction has been
-through a browser. The trigger,
+**No test covers the lock.** The guard lives in a route, and routes have no test harness here --
+the suite is pure-unit. It is one `includes` against a field the request already carries, but it
+is worth naming rather than implying the 203 cover it.
+
+**Not verified:** none of the reflection, the break card, the part introduction or the closed
+state has been through a browser. The trigger,
 the loading state and the failure path are unexercised -- CLAUDE.md permits build checks only.
 This is the same class of gap that hid the missing wire, so it is worth saying plainly rather
 than leaving in a footnote.

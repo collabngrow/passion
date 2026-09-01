@@ -1,6 +1,6 @@
 import { MAX_ANSWER_LENGTH, saveAnswer } from "@/lib/answers/store";
 import { getQuestion, isLastInSection } from "@/lib/exercise";
-import { badRequest, jsonOk, readJson, withErrorHandling } from "@/lib/http";
+import { ApiError, badRequest, jsonOk, readJson, withErrorHandling } from "@/lib/http";
 import { requireParticipant } from "@/lib/journey/guard";
 import { updateProgress } from "@/lib/participants/store";
 
@@ -27,6 +27,25 @@ export const POST = withErrorHandling("journey/answer", async (request: Request)
   const question = getQuestion(questionId);
   // Rejecting unknown ids keeps the answers collection to the real exercise.
   if (!question) throw badRequest("That question isn't part of this exercise.");
+
+  /*
+   * A part closes when its analysis is generated (§59, §77).
+   *
+   * Enforced here rather than only in the UI (§90): the readOnly textarea is a
+   * courtesy, and a saved edit would leave the stored reflection describing
+   * answers that no longer exist -- then quietly spend another model call the
+   * next time it was read, because the reflection is keyed by a fingerprint of
+   * those answers. The check is free: requireParticipant already loaded this.
+   */
+  const reflected = participant.progress?.reflectedSections ?? [];
+  if (reflected.includes(question.sectionId)) {
+    throw new ApiError(
+      409,
+      "This part is complete. Your answers here are kept as they were when " +
+        "your analysis was written.",
+      "section_locked",
+    );
+  }
 
   if (typeof body.answer !== "string") throw badRequest();
   const answer = body.answer.slice(0, MAX_ANSWER_LENGTH);

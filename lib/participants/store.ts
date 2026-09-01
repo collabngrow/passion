@@ -1,6 +1,6 @@
 import "server-only";
 
-import { Timestamp, db } from "@/lib/firebase/admin";
+import { FieldValue, Timestamp, db } from "@/lib/firebase/admin";
 import { exerciseVersion, firstQuestion } from "@/lib/exercise";
 import type { Participant, ParticipantProgress } from "@/lib/invitations/types";
 
@@ -81,6 +81,28 @@ export async function updateProgress(
   }
 
   await ref(uid).update(update);
+}
+
+/**
+ * Records that a part's analysis has been produced, which closes that part.
+ *
+ * Once a participant has read an interpretation of what they wrote, editing the
+ * answers underneath it would leave the two disagreeing -- and because the
+ * stored reflection is keyed by a fingerprint of those answers (§77), a single
+ * edited character would silently spend another model call to replace it. So
+ * the part is closed at the moment its analysis is generated.
+ *
+ * `arrayUnion` rather than a read-modify-write: two requests arriving together
+ * cannot drop one another's section.
+ */
+export async function markSectionReflected(
+  uid: string,
+  sectionId: string,
+): Promise<void> {
+  await ref(uid).update({
+    "progress.reflectedSections": FieldValue.arrayUnion(sectionId),
+    updatedAt: Timestamp.now(),
+  });
 }
 
 /**

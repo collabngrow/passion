@@ -15,12 +15,15 @@ export function PartIntro({
   title,
   questionCount,
   offersAnalysis,
+  closed,
 }: {
   partNumber: number;
   title: string;
   questionCount: number;
   /** False for the closing part, whose analysis is the final synthesis itself. */
   offersAnalysis: boolean;
+  /** True once this part's analysis exists and its answers are fixed. */
+  closed: boolean;
 }) {
   return (
     <section
@@ -34,15 +37,23 @@ export function PartIntro({
       <p className="mt-3 leading-relaxed text-ink">
         This part contains {questionCount}{" "}
         {questionCount === 1 ? "question" : "questions"}.
-        {offersAnalysis
-          ? " Once you have answered all of them, you'll be given an analysis of your responses in this part."
-          : " It closes the exercise, and your full reflection follows it."}
+        {closed
+          ? " You have finished it, and your analysis is at the end. These answers stay as they were when it was written."
+          : offersAnalysis
+            ? " Once you have answered all of them, you'll be given an analysis of your responses in this part."
+            : " It closes the exercise, and your full reflection follows it."}
       </p>
 
-      <p className="mt-3 leading-relaxed text-ink-soft">
-        You can take a break at any point using the button above. Everything you
-        write is saved as you go, and you can continue where you left off.
-      </p>
+      {/*
+        Dropped once the part is closed: there is nothing left to save here, and
+        repeating the promise would read as though there were.
+      */}
+      {!closed ? (
+        <p className="mt-3 leading-relaxed text-ink-soft">
+          You can take a break at any point using the button above. Everything
+          you write is saved as you go, and you can continue where you left off.
+        </p>
+      ) : null}
     </section>
   );
 }

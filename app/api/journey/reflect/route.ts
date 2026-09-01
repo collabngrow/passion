@@ -15,6 +15,7 @@ import {
   withErrorHandling,
 } from "@/lib/http";
 import { requireParticipant } from "@/lib/journey/guard";
+import { markSectionReflected } from "@/lib/participants/store";
 import { AI_GENERATION_POLICY, consumeAttempt } from "@/lib/security/rate-limit";
 
 export const runtime = "nodejs";
@@ -63,7 +64,13 @@ export const POST = withErrorHandling("journey/reflect", async (request: Request
     const result = await generateSectionInterpretation(participant.uid, sectionId);
 
     // Nothing written in the section: not an error, just nothing to reflect on.
+    // Deliberately not locked -- there is nothing to protect, and a participant
+    // who skipped a part should still be able to come back and write it.
     if (!result) return jsonOk({ interpretation: null });
+
+    // Closes the part. Written after the generation succeeds, so a failed
+    // attempt never locks answers behind an analysis that does not exist.
+    await markSectionReflected(participant.uid, sectionId);
 
     return jsonOk({
       sectionId: result.sectionId,
