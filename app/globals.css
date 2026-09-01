@@ -1,0 +1,97 @@
+@import "tailwindcss";
+
+/*
+ * CollabNGrow design tokens.
+ * Source of truth: brand_guidelines.md §3 (palette), §25 (tokens).
+ *
+ * Components must consume these tokens via Tailwind utilities (bg-brand,
+ * text-ink, rounded-md, ...). Raw hex values in components are a brand
+ * violation -- see brand_guidelines.md §25 and §26 ("Do not scatter raw
+ * colours throughout components").
+ */
+
+@theme {
+  /* --- Brand ------------------------------------------------------- */
+  /* Primary Rose Pink: buttons, active nav, CTAs, links, accents. */
+  --color-brand: #e0023f;
+  /* Deep Rose: headers, sidebars, hero, gradient endpoints, hover. */
+  --color-brand-dark: #c11c45;
+  /* Soft rose tints: card backgrounds, selected states, subtle sections. */
+  --color-brand-soft: #fff5f7;
+  --color-brand-tint: #ffe4ec;
+
+  /* --- Surfaces ---------------------------------------------------- */
+  /* White is a major part of the identity (brand §3). */
+  --color-canvas: #ffffff;
+  --color-surface: #ffffff;
+
+  /* --- Text -------------------------------------------------------- */
+  --color-ink: #1f1f1f;
+  --color-ink-soft: #666666;
+  /* For text placed on brand/dark-rose surfaces. */
+  --color-on-brand: #ffffff;
+
+  /* --- Lines ------------------------------------------------------- */
+  --color-line: #e9e9e9;
+  --color-line-strong: #d6d6d6;
+
+  /* --- Status ------------------------------------------------------ */
+  /* Used sparingly for positive status only (brand §27). */
+  --color-positive: #1a7f4b;
+  --color-critical: #b3001b;
+
+  /* --- Radii (brand §25) ------------------------------------------- */
+  --radius-sm: 8px;
+  --radius-md: 12px;
+  --radius-lg: 18px;
+  --radius-xl: 24px;
+
+  /* --- Typography -------------------------------------------------- */
+  --font-sans:
+    var(--font-inter), ui-sans-serif, system-ui, -apple-system,
+    "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+
+  /* Reading measure for reflective content (brand §23). */
+  --container-reading: 40rem;
+}
+
+/*
+ * The identity is White + Rose with generous whitespace (brand §4).
+ * The product deliberately does not ship a dark theme: a dark canvas would
+ * invert the "white as primary canvas" hierarchy the brand depends on.
+ */
+:root {
+  color-scheme: light;
+}
+
+body {
+  background-color: var(--color-canvas);
+  color: var(--color-ink);
+  font-family: var(--font-sans);
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+}
+
+/* Visible focus states are mandatory (brand §24, master_prompt §73). */
+:focus-visible {
+  outline: 2px solid var(--color-brand);
+  outline-offset: 2px;
+  border-radius: 2px;
+}
+
+::selection {
+  background-color: var(--color-brand-tint);
+  color: var(--color-ink);
+}
+
+/* Respect reduced-motion preferences (brand §15, master_prompt §73). */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}
