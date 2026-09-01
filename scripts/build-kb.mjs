@@ -199,8 +199,11 @@ export const knowledgeBase: KnowledgeItem[] = ${JSON.stringify(runtime, null, 2)
  * Main
  * ----------------------------------------------------------------------- */
 
+// README.md documents the format; it is not itself a knowledge file.
+const DOC_FILES = new Set(["README.md"]);
+
 const files = readdirSync(SOURCE_DIR)
-  .filter((name) => name.endsWith(".md"))
+  .filter((name) => name.endsWith(".md") && !DOC_FILES.has(name))
   .sort();
 
 if (files.length === 0) {

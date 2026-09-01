@@ -160,6 +160,86 @@ generated file cannot ship.
 
 ---
 
+## Sprint 3 — Cryptography and invitation core
+
+**Status:** complete
+
+### Password hashing — `lib/security/password.ts`
+
+scrypt from `node:crypto`, N=32768, r=8, p=1, 64-byte key, 16-byte salt.
+
+Chosen over argon2 and bcrypt because both are native modules whose prebuilt binaries are a
+recurring source of breakage across a Windows dev machine and a Linux serverless runtime.
+scrypt is memory-hard, built in, and needs no build step. Measured at ~400 ms per hash, which is
+the point.
+
+Node's default `maxmem` is 32 MB, just under what these parameters need, so it is raised
+explicitly to 96 MB. Parameters are encoded per hash (`scrypt$N$r$p$salt$hash`) so they can be
+raised later without invalidating existing invitations; `needsRehash()` supports that migration.
+
+**Malformed stored values return `false`, never throw.** A corrupted record must read as "wrong
+password", never as an authentication bypass. Absurd parameters from a tampered record are
+rejected before derivation, so a doctored `N` cannot trigger a multi-gigabyte allocation.
+
+### Recoverable encryption — `lib/security/encryption.ts`
+
+AES-256-GCM, format `v1:iv:authTag:ciphertext`, 96-bit nonce, 128-bit tag. GCM is authenticated,
+so tampering fails loudly instead of decrypting to rubbish — asserted for both a flipped
+ciphertext byte and a flipped tag byte.
+
+### Grant token — `lib/security/token.ts`
+
+The mechanism reconciling three requirements that pull against each other: §14/§16 (password
+**and** Google), §18 (survive close and refresh), §19 (password again after explicit logout).
+
+Firebase's session satisfies §18 alone but cannot satisfy §19 — a returning user would simply be
+signed in again. So journey access requires two independent facts: a verified Firebase ID token
+whose uid matches `invitation.boundUid`, **and** an HttpOnly grant cookie issued only by
+successful server-side password verification. Logout clears both; refresh clears neither.
+
+HS256 via `jose`, 30-day TTL, audience-scoped, and **bound to a single `inviteId`** — a grant for
+one invitation cannot open another. The password is never in the token; a test asserts the claim
+set is exactly `{iss, aud, iat, exp, inviteId}`.
+
+### Rate limiting — `lib/security/rate-limit.ts`
+
+Firestore-backed, one transaction per check (§96 rules out Redis at this scale). Policies:
+password 10 per 15 min, admin-sensitive 30 per 15 min, AI 40 per hour.
+
+Identifiers are SHA-256 hashed before becoming document ids, keeping raw IPs out of Firestore
+(§12). Counters reset on success, so nine mistypes followed by a correct entry does not leave a
+participant one attempt from a block on their next visit.
+
+**Fails open when Firestore is unavailable.** A deliberate trade: the limiter is a second line of
+defence behind a ~116-bit password, and taking the product down because a counter cannot be
+written would punish legitimate participants for an infrastructure fault. The password check
+itself never degrades. Proxy headers are used for rate-limit input only, never authorization
+(§90).
+
+### Invitation generation — `lib/invitations/generate.ts`
+
+`randomInt` (rejection-sampled, no modulo bias) over a 57-character alphabet excluding `0 O 1 l
+I`. Invite id 10 chars (~58 bits); password 20 chars (~116 bits).
+
+The ambiguous characters are excluded because passwords get read off a screen, typed by hand and
+dictated over the phone — and §54 forbids the system from telling anyone they were close.
+`formatPasswordForDisplay` groups for legibility; `normalisePasswordInput` strips the grouping
+and whitespace but **preserves case**, since lowering it would discard entropy.
+
+### Test infrastructure
+
+`server-only` throws by design outside a React Server Component graph, so vitest aliases it to a
+stub — the guard is a build-time boundary, not behaviour worth exercising. `test/setup.ts`
+supplies fixed test secrets, which works because `lib/env.ts` reads lazily inside functions.
+
+### Verification
+
+`npm run build`, `npm run lint`, `npx tsc --noEmit` clean. **56 tests passing** (up from 26).
+Security coverage includes malformed-hash rejection, tampered-ciphertext rejection, cross-invitation
+grant rejection, forged-signature rejection and expiry.
+
+---
+
 ## Environment variables
 
 Present in `.env`: seven `NEXT_PUBLIC_FIREBASE_*`, plus `GEMINI_API_KEY_1`, `GEMINI_API_KEY_2`,
@@ -184,4 +264,4 @@ Still required before the application can run end-to-end:
 
 ## Next
 
-Sprint 3 — cryptography and invitation core: scrypt hashing, AES-GCM encryption, grant tokens, rate limiting.
+Sprint 4 — authentication and admin authorization: Google sign-in, requireUser / requireAdmin / requireFreshAuth.
