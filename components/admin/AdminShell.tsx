@@ -167,14 +167,39 @@ export function AdminShell({ children }: { children: ReactNode }) {
       <header className="on-brand-surface bg-brand-dark lg:w-64 lg:shrink-0">
         <div className="flex items-center gap-3 px-5 py-4 lg:px-6 lg:py-6">
           <Logo size="sm" />
-          <div>
+          <div className="min-w-0">
             <p className="font-semibold text-on-brand">CollabNGrow</p>
             <p className="text-xs text-on-brand">Passion Analyzer</p>
           </div>
+
+          {/*
+            Inverted against the navigation on purpose: this opens the exercise
+            content itself, which is reference material rather than another
+            section of the dashboard, and the inversion says so before the label
+            is read. `ml-auto` claims the empty space beside the wordmark.
+          */}
+          <Link
+            href="/admin/exercises"
+            aria-current={pathname.startsWith("/admin/exercises") ? "page" : undefined}
+            className={
+              "ml-auto shrink-0 rounded-md border border-surface bg-surface " +
+              "px-3 py-2 text-sm font-semibold text-brand " +
+              "transition-colors duration-150 hover:bg-brand-soft"
+            }
+          >
+            Exercises
+          </Link>
         </div>
 
         <nav aria-label="Admin sections" className="px-3 pb-4 lg:px-4">
-          <ul className="flex gap-1 overflow-x-auto lg:flex-col lg:overflow-visible">
+          {/*
+            Three to a row rather than one scrolling strip: six items did not fit
+            a phone, and a horizontal scroll hides the last three behind a
+            gesture nobody is told about. A grid wraps them at a fixed three so
+            the rows stay even whatever the labels say; the sidebar returns to a
+            single column from `lg` up.
+          */}
+          <ul className="grid grid-cols-3 gap-2 lg:grid-cols-1 lg:gap-1">
             {NAV.map((item) => {
               const active =
                 item.href === "/admin"
@@ -182,15 +207,22 @@ export function AdminShell({ children }: { children: ReactNode }) {
                   : pathname.startsWith(item.href);
 
               return (
-                <li key={item.href} className="shrink-0 lg:shrink">
+                <li key={item.href}>
                   <Link
                     href={item.href}
                     aria-current={active ? "page" : undefined}
                     className={[
-                      "block rounded-md px-4 py-2.5 text-sm font-medium",
-                      "transition-colors duration-150 whitespace-nowrap",
+                      "block rounded-md border px-3 py-2.5 text-center text-sm",
+                      "font-medium transition-colors duration-150",
+                      "lg:px-4 lg:text-left",
+                      // The outline is the constant; the fill is what changes.
+                      // Current page inverts to white-on-rose reversed, which is
+                      // a stronger signal than a tint and survives §73's rule
+                      // that state never rests on colour alone -- aria-current
+                      // carries it for anyone the inversion does not reach.
+                      "border-surface",
                       active
-                        ? "bg-surface text-brand"
+                        ? "bg-surface font-semibold text-brand"
                         : "text-on-brand hover:bg-on-brand/10",
                     ].join(" ")}
                   >

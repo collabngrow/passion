@@ -1384,10 +1384,40 @@ One thing left explicitly undone: the second exercise will need its own progress
 route. The `entry.id === "reflection"` branch is written so that a new exercise gets `null`
 progress rather than silently inheriting the reflection exercise's figures.
 
+### The admin navigation on a phone, and an exercise reader
+
+Six navigation items were one horizontally scrolling strip on a narrow screen, which hid the
+last three behind a gesture nobody is told about. They are now a `grid-cols-3` that returns to a
+single column from `lg` up: a grid rather than `flex-wrap` because six labels of six different
+lengths do not wrap three-and-three on their own, and the rows have to stay even.
+
+Every item carries a white outline. The outline is the constant and the fill is what changes --
+the current page inverts to white-on-rose-reversed, which is a stronger signal than a tint.
+`aria-current` still carries the state for anyone the inversion does not reach (S73).
+
+`Exercises` sits in the empty space beside the wordmark, inverted against the navigation on
+purpose: it opens the exercise content, which is reference material rather than another section
+of the dashboard, and the inversion says so before the label is read.
+
+`/admin/exercises` lists the catalogue and the exercise part by part, each part collapsing to
+its questions. Forty-three questions across fourteen parts is a document to scan, not a flow to
+step through, and an administrator checking what someone is being asked usually wants one part.
+`QuestionBlocks` is reused, so the admin sees the questions rendered exactly as a participant
+does.
+
+**Read-only by construction, not by omission.** `GET /api/admin/exercises` has no write verb,
+because the questions are generated from `content/exercise.md` (S68): an endpoint that accepted
+an edit would offer something the build pipeline cannot honour. The panel says this on the page
+rather than leaving the absence of an edit control to be discovered.
+
+It is deliberately not the participant route. `/api/exercises` returns one person's progress and
+no question text; this returns every question and nobody's answers. Two different things behind
+two different guards.
+
 ### Verification
 
-`npx tsc --noEmit`, `npx eslint`, `npx next build` clean. **203 tests passing.** 36 routes,
-including `/exercises` and `/api/exercises`.
+`npx tsc --noEmit`, `npx eslint`, `npx next build` clean. **203 tests passing.** 38 routes,
+including `/exercises`, `/admin/exercises` and their two APIs.
 
 **No test covers the lock.** The guard lives in a route, and routes have no test harness here --
 the suite is pure-unit. It is one `includes` against a field the request already carries, but it
