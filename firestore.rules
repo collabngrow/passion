@@ -1,0 +1,46 @@
+rules_version = '2';
+
+// Firestore security rules (master_prompt.md §49, §88).
+//
+// EVERY document in this database is denied to every client. That is not a
+// placeholder -- it is the intended final state, and it is enforceable because
+// of how the application is built:
+//
+//   * The browser loads the Firebase SDK for authentication ONLY
+//     (lib/firebase/client.ts). The Firestore client SDK is never imported, so
+//     no page has a Firestore handle to use.
+//   * Every read and write goes through a server route backed by the Admin SDK
+//     (lib/firebase/admin.ts), which authenticates as a service account and
+//     bypasses these rules by design.
+//
+// So a rule that granted a participant read access to their own documents would
+// widen the attack surface without enabling anything the product does. §49 asks
+// that rules be an additional enforcement layer rather than the only one; here
+// they are the layer that makes a stolen Firebase API key worthless.
+//
+// What this closes, concretely: the web API key in NEXT_PUBLIC_FIREBASE_API_KEY
+// is public by necessity. Anyone holding it can sign in with Google and then
+// talk to Firestore directly as an authenticated user. Under these rules that
+// session can read nothing -- not another participant's answers, not their
+// reflection, and above all not `invitations`, which holds password hashes and
+// the AES ciphertext of every invitation password (§88).
+//
+// Collections covered by the catch-all below, for the record:
+//   invitations, participants (+ answers, interpretations, synthesis),
+//   feedbackResponses, adminActions, rateLimits, system.
+//
+// Deploy with:  firebase deploy --only firestore:rules
+
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    // Denies read and write on every path, at every depth, to every client --
+    // signed in, signed out, administrator included. The administrator's
+    // browser has no more access here than a stranger's: the admin dashboard
+    // reads through /api/admin/* routes, which verify the account server-side
+    // on every request (lib/auth/verify.ts).
+    match /{document=**} {
+      allow read, write: if false;
+    }
+  }
+}

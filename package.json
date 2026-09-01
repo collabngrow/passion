@@ -4,7 +4,7 @@
   "private": true,
   "description": "CollabNGrow Passion Analyzer — a private, invitation-only guided self-reflection experience.",
   "scripts": {
-    "generate": "node scripts/build-exercise.mjs && node scripts/build-kb.mjs",
+    "generate": "node scripts/build-exercise.mjs && node scripts/build-kb.mjs && node scripts/build-icons.mjs",
     "predev": "npm run generate",
     "dev": "next dev",
     "prebuild": "npm run generate",
@@ -16,6 +16,7 @@
     "test": "vitest run",
     "test:watch": "vitest",
     "verify:setup": "node scripts/verify-setup.mjs",
+    "deploy:rules": "firebase deploy --only firestore --project passion-f0aec",
     "smoke:ai": "node scripts/smoke-ai.mjs"
   },
   "dependencies": {

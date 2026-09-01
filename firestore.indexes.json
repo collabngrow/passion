@@ -1,0 +1,27 @@
+{
+  "//": [
+    "Firestore indexes (master_prompt.md §49).",
+    "",
+    "`indexes` is empty because it should be. Every query the application runs",
+    "sorts or filters on a single field, and Firestore creates a single-field",
+    "index for those automatically:",
+    "",
+    "  invitations      orderBy createdAt desc            (admin listing)",
+    "  invitations      where boundUid == uid             (journey guard)",
+    "  invitations      where status == 'active' / count  (overview)",
+    "  participants     orderBy createdAt desc            (admin listing)",
+    "  feedbackResponses orderBy submittedAt desc         (feedback tab)",
+    "  adminActions     orderBy at desc                   (audit trail)",
+    "",
+    "A composite index is needed only for a query that combines an equality",
+    "filter with an order on a different field, and none of the above does.",
+    "Declaring one anyway would cost write throughput on every document for an",
+    "index nothing reads. This file exists so `firebase deploy --only",
+    "firestore` is complete rather than silently partial.",
+    "",
+    "`fieldOverrides` is empty for the same reason: no field here is large",
+    "enough or unqueried enough to be worth exempting from indexing."
+  ],
+  "indexes": [],
+  "fieldOverrides": []
+}

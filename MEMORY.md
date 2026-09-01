@@ -679,11 +679,15 @@ Still required before the application can run end-to-end:
 Q2 was already asked at onboarding in S5. This sprint added the post-revelation half: Q1 and Q3
 below the reflection, and the admin Feedback tab.
 
-### Where the survey sits on the page
+### The survey is its own page, never part of the reflection
 
-**After the culminating section, not before it.** S62 asks the experience to end on "Who are you
-choosing to become?" A form above that would make the last thing a participant reads a rating
-exercise. Placed below, the reflection still ends where it should and the survey is an appendix.
+**`/journey/survey`, reached deliberately.** Owner's decision: it must never appear in front of a
+participant. It is not rendered inside the reflection at all -- participants are messaged
+separately and asked to go and fill it in. The result page carries one quiet text link in its
+footer, nothing more.
+
+That also settles S62 cleanly: the reflection still ends on "Who are you choosing to become?",
+with no form after it turning the last thing someone reads into a rating exercise.
 
 Q2 is **replayed read-only** from the profile rather than re-asked, so the participant sees their
 own before-and-after rather than answering the same question twice.
@@ -711,16 +715,22 @@ time: the shift analysis pairs the two answers as they stood together at that mo
 Pure functions over plain records, free of Firestore types, because these numbers are what a
 pricing decision would rest on.
 
-- **"I would never pay" is not zero and "Priceless" is not a large number.** Both are excluded
-  from the average and reported separately. But for the before/after comparison a refusal must
-  rank *below* every amount -- moving from refusal to Rs 200 is a genuine increase -- so ranking
-  and averaging deliberately use different mappings, and a test pins both.
+- **"Priceless" is quantified at Rs 5,00,000, the top of the scale** (owner's decision), so it
+  enters the average like any other answer instead of being set aside. It is still counted
+  separately in the dashboard, because a mean that silently contains a ceiling has to be readable
+  next to how many people chose that ceiling -- the panel says so on the card.
+- **The written-in amount shares that ceiling.** `MAX_WORTH_RUPEES = 500_000` is both the cap on
+  a custom entry and the value of "Priceless", so nothing written in can outrank the top option,
+  and one joke entry cannot drag the average a price would be set from.
+- **"I would never pay" is still not zero.** It stays out of the average -- a refusal is not an
+  offer of Rs 0 -- but ranks *below* every amount in the before/after comparison, since moving
+  from refusal to Rs 200 is a genuine increase. Ranking and averaging use different mappings on
+  purpose, and a test pins both.
 - **A written-in amount is judged by the amount.** The source document lumps Q3 options 6-10
   together for the "Rs 2,000+" stat, which would count someone who wrote "Rs 50" as a Rs 2,000+
   response. The custom value is compared against the threshold instead.
-- **Custom values are capped at Rs 1 crore.** One joke entry would drag the average into
-  meaninglessness. `parseCustomWorth` also accepts what people actually type -- `2,000`, `Rs 2000`,
-  whitespace -- since rejecting a comma reads as the form quibbling.
+- `parseCustomWorth` accepts what people actually type -- `2,000`, `Rs 2000`, whitespace -- since
+  rejecting a comma reads as the form quibbling rather than the person being unclear.
 - **Q2 percentages are over the people who answered Q2**, which was optional at onboarding.
   Spreading them across everyone would understate every bracket.
 
@@ -736,11 +746,104 @@ disagree.
 
 ### Verification
 
-`npm run build`, `npm run lint`, `npx tsc --noEmit` clean. **115 tests passing** (up from 95),
-20 of them covering the aggregation. 23 routes building.
+`npx next build`, `npx eslint`, `npx tsc --noEmit` clean. **117 tests passing** (up from 95),
+22 of them covering the aggregation.
+
+---
+
+## Sprint 10 - Progressive web app
+
+**Status:** complete
+
+### The service worker is defined by what it refuses to cache
+
+`public/sw.js` is hand-written rather than generated, because the whole decision is the exclusion
+list. Exactly two things are cacheable:
+
+1. build-immutable assets (`/_next/static/`, `/icons/`, `/brand/`),
+2. two pages with no participant content at all: `/` and `/offline`.
+
+**`/api/*` is never intercepted**, so no authenticated response can be cached, go stale, or be
+served to the wrong person. No authenticated page is cached either. An offline participant gets
+`/offline`, never a stale copy of their own reflection -- which is also why offline mode cannot
+bypass authentication (S46): there is no cached authenticated response for it to serve.
+
+Only `response.type === "basic"` responses are stored; an opaque response cannot be inspected to
+know whether it is private.
+
+### Icons - `scripts/build-icons.mjs`
+
+Generated from `public/brand/logo.png` with sharp, `contain` not `cover`, since cropping the
+supplied mark is a modification brand S7 forbids. White background rather than transparent: a
+transparent icon renders on whatever the launcher supplies, and the rose mark on a dark launcher
+is the contrast failure S73 rules out.
+
+The maskable icon insets the mark to 60% of the canvas -- Android crops to the launcher's shape,
+and an un-inset icon survives a square launcher while losing its edges on a round one. The Apple
+touch icon is declared in the layout because iOS does not read the manifest for it.
+
+`public/icons/` is gitignored and regenerated by `npm run generate`, which now runs three build
+scripts.
+
+### start_url is "/" and there are no shortcuts
+
+Someone reopening the installed app may be signed out or may never have bound an invitation; the
+root page is the one that can say so. Deep-linking into `/journey` would show the journey's own
+signed-out state instead of the way back in. Shortcuts are omitted for the same reason -- every
+route past the root is invitation-bound.
+
+S47 needed no work: `browserLocalPersistence` and the `loading` flag in `useAuthState` already
+restore the session on reopen without flashing a signed-out view.
+
+---
+
+## Sprint 11 - Firestore rules and indexes
+
+**Status:** written and verified; **NOT YET DEPLOYED** -- see below.
+
+### Deny-all is the final state, not a placeholder
+
+`firestore.rules` denies every read and write on every path to every client, administrator
+included. That is possible because the browser loads Firebase **for authentication only** -- the
+Firestore web SDK is never imported, and all data access goes through server routes on the Admin
+SDK, which bypasses rules as a service account.
+
+What it closes concretely: `NEXT_PUBLIC_FIREBASE_API_KEY` is public by necessity. Anyone holding
+it can sign in and talk to Firestore directly. Under these rules that session reads nothing --
+not another participant's answers, and above all not `invitations`, which holds password hashes
+and the AES ciphertext of every invitation password (S88).
+
+### A test pins the assumption the rules rest on
+
+`lib/firebase/client-boundary.test.ts` scans `app/`, `components/` and `lib/` and fails if
+anything imports `firebase/firestore`, or if a `"use client"` file imports `firebase-admin`. The
+failure mode it guards against is specific: a client-side Firestore read would break against
+deny-all rules, and the tempting fix is to loosen the rules rather than move the read to the
+server. It also asserts it found sources at all, so a path change cannot silently empty the check.
+
+### firestore.indexes.json is empty on purpose
+
+Every query in the app sorts or filters on a single field, which Firestore indexes automatically.
+A composite index is only needed for an equality filter combined with an order on a different
+field, and none exists here. The file documents each query so the emptiness reads as a finding
+rather than an omission.
+
+### Not deployed
+
+`firebase deploy --only firestore` was blocked by the sandbox permission classifier. **Firestore
+is still on open test-mode rules** -- the one live security gap. `npm run deploy:rules` runs it;
+the CLI is already authenticated and `passion-f0aec` is reachable.
+
+### Verification
+
+`npx tsc --noEmit`, `npx eslint`, `npx next build` clean. **120 tests passing.** 25 routes,
+including `/journey/survey`, `/offline` and `/manifest.webmanifest`.
 
 ---
 
 ## Next
 
-S10 PWA, S11 Firestore rules, S12 accessibility, S13 tests/docs, S14 ship.
+S12 accessibility, S13 tests/docs, S14 ship. Plus two open items:
+
+- **Deploy the Firestore rules** (`npm run deploy:rules`). Until then the database is open.
+- **`maxDuration: 300` on the synthesis route** exceeds Vercel's Hobby function limit.

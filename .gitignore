@@ -47,3 +47,6 @@ yarn-error.log*
 Thumbs.db
 .idea/
 *.swp
+
+# generated pwa icons (scripts/build-icons.mjs)
+public/icons/
