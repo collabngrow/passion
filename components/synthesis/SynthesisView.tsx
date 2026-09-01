@@ -4,6 +4,7 @@ import { useCallback, useEffect, useState } from "react";
 import Link from "next/link";
 
 import { useAuthState } from "@/components/auth/useAuthState";
+import { FeedbackSurvey } from "@/components/feedback/FeedbackSurvey";
 import { Button } from "@/components/ui/Button";
 import { Logo } from "@/components/ui/Logo";
 import { Notice } from "@/components/ui/Notice";
@@ -265,6 +266,14 @@ export function SynthesisView() {
               answer, in your own words.
             </p>
           </section>
+
+          {/*
+            The survey sits after the culmination, not before it: §62 asks that
+            the experience end on that question, and a form placed above it
+            would make the last thing the participant reads a rating exercise.
+            It renders itself only once the reflection has been written.
+          */}
+          <FeedbackSurvey />
 
           <footer className="mt-10 flex flex-wrap items-center justify-between gap-4 border-t border-line pt-6">
             <Link

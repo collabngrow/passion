@@ -124,3 +124,39 @@ export const PRICING_DISCLAIMER = {
 /** Preamble from the source document, shown above the Q2 options. */
 export const WILLINGNESS_TO_PAY_PREAMBLE =
   "People tend to weigh something more seriously when they have put a price on it.";
+
+/**
+ * Bounds on the written-in amount for Q3 option 9.
+ *
+ * An upper bound matters because a single joke entry would drag the admin's
+ * average worth into meaninglessness, and the average is the number the
+ * pricing decision rests on. A crore is far beyond any honest answer to this
+ * question while still leaving room for a generous one.
+ */
+export const MAX_CUSTOM_WORTH_RUPEES = 10_000_000;
+
+/**
+ * Normalises a written-in amount, or returns null when it is not usable.
+ *
+ * Accepts what people actually type -- "2,000", " 2000 ", "₹2000" -- because
+ * rejecting a comma would read as the form quibbling rather than the person
+ * being unclear.
+ */
+export function parseCustomWorth(input: unknown): number | null {
+  const raw =
+    typeof input === "number"
+      ? String(input)
+      : typeof input === "string"
+        ? input
+        : "";
+
+  const cleaned = raw.replace(/[₹,\s]/g, "");
+  if (cleaned.length === 0) return null;
+  if (!/^\d+(\.\d+)?$/.test(cleaned)) return null;
+
+  const value = Math.round(Number(cleaned));
+  if (!Number.isFinite(value) || value <= 0) return null;
+  if (value > MAX_CUSTOM_WORTH_RUPEES) return null;
+
+  return value;
+}

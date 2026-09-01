@@ -672,6 +672,75 @@ Still required before the application can run end-to-end:
 | `gh` | authenticated as `collabngrow` |
 | Vercel | CLI installed; project not yet linked, deployment is owner-driven |
 
+## Sprint 9.5 - Feedback survey
+
+**Status:** complete
+
+Q2 was already asked at onboarding in S5. This sprint added the post-revelation half: Q1 and Q3
+below the reflection, and the admin Feedback tab.
+
+### Where the survey sits on the page
+
+**After the culminating section, not before it.** S62 asks the experience to end on "Who are you
+choosing to become?" A form above that would make the last thing a participant reads a rating
+exercise. Placed below, the reflection still ends where it should and the survey is an appendix.
+
+Q2 is **replayed read-only** from the profile rather than re-asked, so the participant sees their
+own before-and-after rather than answering the same question twice.
+
+### Locking
+
+`unlocked` is decided server-side by whether a synthesis document exists, not by what the page
+claims to have shown (S90). `POST /api/feedback` re-checks it, so a response cannot be recorded
+before there is anything to respond to.
+
+### One response per participant, by construction
+
+`feedbackResponses/{uid}` -- the document id **is** the uid, so uniqueness is structural rather
+than a read-then-write that could race. Writes use `create`, mirroring `createParticipant`.
+
+Only **ALREADY_EXISTS (gRPC 6)** maps to "you have already answered". Collapsing every failure
+into that would tell someone their feedback was recorded during an outage when nothing was
+stored.
+
+Q2 is **copied into the response** at submission rather than joined from the profile at read
+time: the shift analysis pairs the two answers as they stood together at that moment.
+
+### The arithmetic is the substance - `lib/feedback/analytics.ts`
+
+Pure functions over plain records, free of Firestore types, because these numbers are what a
+pricing decision would rest on.
+
+- **"I would never pay" is not zero and "Priceless" is not a large number.** Both are excluded
+  from the average and reported separately. But for the before/after comparison a refusal must
+  rank *below* every amount -- moving from refusal to Rs 200 is a genuine increase -- so ranking
+  and averaging deliberately use different mappings, and a test pins both.
+- **A written-in amount is judged by the amount.** The source document lumps Q3 options 6-10
+  together for the "Rs 2,000+" stat, which would count someone who wrote "Rs 50" as a Rs 2,000+
+  response. The custom value is compared against the threshold instead.
+- **Custom values are capped at Rs 1 crore.** One joke entry would drag the average into
+  meaninglessness. `parseCustomWorth` also accepts what people actually type -- `2,000`, `Rs 2000`,
+  whitespace -- since rejecting a comma reads as the form quibbling.
+- **Q2 percentages are over the people who answered Q2**, which was optional at onboarding.
+  Spreading them across everyone would understate every bracket.
+
+### Admin tab
+
+`/admin/feedback`: four stat cards, Q1 distribution, average worth with "Priceless" counted
+apart, and Q2 against Q3 on a **shared scale** -- bars normalised to their own maximum would make
+a 2-response bracket look like a 20-response one. Bars are CSS, not a charting library, and each
+carries its own number so it reads to a screen reader (S73).
+
+The route returns rows and summary computed from the same set, so the table and the charts cannot
+disagree.
+
+### Verification
+
+`npm run build`, `npm run lint`, `npx tsc --noEmit` clean. **115 tests passing** (up from 95),
+20 of them covering the aggregation. 23 routes building.
+
+---
+
 ## Next
 
-S9.5 feedback survey, then S10 PWA, S11 Firestore rules, S12 accessibility, S13 tests/docs, S14 ship.
+S10 PWA, S11 Firestore rules, S12 accessibility, S13 tests/docs, S14 ship.

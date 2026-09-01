@@ -28,6 +28,7 @@ const NAV = [
   { href: "/admin", label: "Overview" },
   { href: "/admin/invitations", label: "Invitations" },
   { href: "/admin/participants", label: "Participants" },
+  { href: "/admin/feedback", label: "Feedback" },
   { href: "/admin/ai", label: "AI configuration" },
   { href: "/admin/settings", label: "Settings" },
 ] as const;
