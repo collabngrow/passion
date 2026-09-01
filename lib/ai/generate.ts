@@ -92,7 +92,10 @@ export async function generateSectionInterpretation(
     systemInstruction,
     prompt,
     responseSchema: interpretationResponseSchema,
-    maxOutputTokens: 1600,
+    // 1600 truncated the JSON mid-object on the live smoke test: thinking
+    // tokens are charged against this budget, and consumed most of it.
+    maxOutputTokens: 4096,
+    thinkingBudget: 512,
     temperature: 0.7,
   });
 
@@ -178,7 +181,9 @@ export async function generateSynthesis(
     systemInstruction,
     prompt,
     responseSchema: synthesisResponseSchema,
-    maxOutputTokens: 8192,
+    // Sixteen prose sections plus two lists, over every answer in the exercise.
+    maxOutputTokens: 16384,
+    thinkingBudget: 2048,
     temperature: 0.7,
   });
 

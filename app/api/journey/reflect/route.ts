@@ -16,7 +16,9 @@ import { AI_GENERATION_POLICY, consumeAttempt } from "@/lib/security/rate-limit"
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
 // Interpretation is a model call, not a typical request.
-export const maxDuration = 60;
+// Measured 18s with a bounded thinking budget, and far longer without
+// one. 120s leaves headroom for a slow provider.
+export const maxDuration = 120;
 
 /**
  * Generates a section reflection (master_prompt.md §59, §75).

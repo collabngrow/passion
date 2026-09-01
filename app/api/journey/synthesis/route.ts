@@ -10,7 +10,9 @@ export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
 // The synthesis reasons across every answer; it is the longest call the product
 // makes.
-export const maxDuration = 120;
+// The synthesis reasons across every answer and emits sixteen sections;
+// it is by far the longest call the product makes.
+export const maxDuration = 300;
 
 /**
  * The final synthesis (master_prompt.md §60, §92).

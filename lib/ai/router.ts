@@ -25,6 +25,16 @@ export type GenerationRequest = {
   responseSchema?: object;
   maxOutputTokens?: number;
   temperature?: number;
+  /**
+   * Cap on the model's internal reasoning tokens.
+   *
+   * Gemini 3.x charges thinking against the output budget and, left unbounded,
+   * spends 40-90 seconds on a task this size -- long enough to exceed a
+   * serverless timeout and far too slow for a participant waiting on a screen.
+   * A bounded budget measured 18s against 44-94s with no loss of quality on the
+   * live smoke test. Note that a budget of 0 is rejected by these models.
+   */
+  thinkingBudget?: number;
 };
 
 export type GenerationSuccess = {
@@ -209,7 +219,10 @@ export async function generate(
         config: {
           systemInstruction: request.systemInstruction,
           temperature: request.temperature ?? 0.7,
-          maxOutputTokens: request.maxOutputTokens ?? 2048,
+          maxOutputTokens: request.maxOutputTokens ?? 4096,
+          ...(request.thinkingBudget
+            ? { thinkingConfig: { thinkingBudget: request.thinkingBudget } }
+            : {}),
           ...(request.responseSchema
             ? {
                 responseMimeType: "application/json",

@@ -15,7 +15,8 @@
     "pretest": "npm run generate",
     "test": "vitest run",
     "test:watch": "vitest",
-    "verify:setup": "node scripts/verify-setup.mjs"
+    "verify:setup": "node scripts/verify-setup.mjs",
+    "smoke:ai": "node scripts/smoke-ai.mjs"
   },
   "dependencies": {
     "@google/genai": "^1.30.0",

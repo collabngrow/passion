@@ -597,6 +597,59 @@ keys accepted. Up to this point every sprint had been build-verified only.
 
 ---
 
+## Sprint 9 — Final result
+
+**Status:** complete
+
+`/journey/result`, reached from Finish on the last question (which flushes the pending answer
+first, so the synthesis reads it).
+
+Reflective and editorial, no score, no rating, no type (§61, brand §30) — the page reads as a
+letter, not a report. Sections render only when there is something behind them, so a thin
+category stays absent rather than padded. Culminates in **"Who are you choosing to become?"** on
+a rose gradient (§62, brand §30).
+
+Generation is explicit: opening the page issues a GET, which never spends a model call (§92).
+The participant asks for it to be written.
+
+---
+
+## Live AI verification — two production bugs found
+
+`npm run smoke:ai` (`scripts/smoke-ai.mjs`) sends one real request through the real prompt shape
+and response schema, then checks the output against the rules that matter: no source provenance
+(§38I), no framework vocabulary, no false certainty (§41), not generic coaching (§42), and
+anchored in the participant's own detail. **8/8 pass**, and the generated reflection found the
+intended tension unprompted.
+
+### 1. `maxOutputTokens: 1600` truncated every interpretation
+
+Gemini 3.x charges **thinking tokens against the output budget**. The first live run spent 1,097
+tokens thinking and was cut off mid-JSON — `parseJsonResponse` would have thrown for every
+participant. Raised to 4,096 for interpretation and 16,384 for the synthesis, which emits sixteen
+sections.
+
+### 2. Unbounded thinking took 44–94 seconds
+
+Long enough to exceed the 60s `maxDuration` the reflect route had, and far too slow for someone
+waiting on a screen.
+
+| thinkingBudget | latency | thoughts |
+| --- | --- | --- |
+| unset | 44.7s / 93.6s | 660 / 1070 |
+| 0 | rejected — `INVALID_ARGUMENT` on these models |  |
+| 512 | **18.1s** (2.1s on a short prompt) | 0 |
+
+Set to 512 for interpretation and 2,048 for the synthesis. Quality was equal or better at 512 —
+that run produced the sharpest of the three reflections and still passed 8/8.
+
+`maxDuration` raised to 120s (reflect) and 300s (synthesis).
+
+**Deployment note:** 300s exceeds Vercel's Hobby function limit. The synthesis route needs a plan
+that permits it, or the budget must be tightened further.
+
+---
+
 ## Environment variables
 
 Present in `.env`: seven `NEXT_PUBLIC_FIREBASE_*`, plus `GEMINI_API_KEY_1`, `GEMINI_API_KEY_2`,
@@ -621,4 +674,4 @@ Still required before the application can run end-to-end:
 
 ## Next
 
-Sprint 9 — final result UI, then S9.5 feedback survey, S10 PWA, S11 Firestore rules.
+S9.5 feedback survey, then S10 PWA, S11 Firestore rules, S12 accessibility, S13 tests/docs, S14 ship.

@@ -281,7 +281,16 @@ export function JourneyFlow() {
               Continue
             </Button>
           ) : (
-            <Button size="lg" onClick={() => void flush()}>
+            <Button
+              size="lg"
+              onClick={async () => {
+                // Flush before leaving, so the last answer is saved before the
+                // synthesis reads it back.
+                if (timerRef.current) clearTimeout(timerRef.current);
+                await flush();
+                router.push("/journey/result");
+              }}
+            >
               Finish
             </Button>
           )}
