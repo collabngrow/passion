@@ -1202,9 +1202,87 @@ the rest in place.
 
 ---
 
+## Sprint 15 - The section reflection was never wired
+
+**Status:** complete
+
+Found in live testing, four questions into a real run: no reflection had appeared, and Part 1 is
+two questions long. It should have fired after question 2.
+
+### The gap
+
+`POST /api/journey/answer` returned `sectionComplete` and **nothing read it**. `/api/journey/reflect`
+had **no callers** outside its own tests. `JourneyFlow` saved an answer and advanced; there was no
+section-boundary handling in it at all.
+
+The engine was complete the whole time -- route, prompt layering, retrieval, idempotency key, rate
+limit, storage, the S14.1 time budget. It had simply never been called by a browser.
+
+Sprint 7 wrote that `sectionComplete` is "how the client **will** know a section reflection can be
+generated". Sprint 8 built the engine. Neither owned the wire between them, and nothing failed:
+every test is a unit test, and CLAUDE.md rules out browser verification, so *"the server can
+generate an interpretation"* and *"a participant ever sees one"* were never the same claim. Worth
+remembering as a category -- a seam between two sprints, each of which passed its own tests.
+
+### What was built
+
+`components/exercise/SectionReflection.tsx`, rendered inline beneath the answer on the last
+question of a part. §59 asks for a "concise reflection ... then continue", with the synthesis
+carrying the weight, so it is quieter than the result page and shares the reading column.
+
+**Two stored fields are deliberately not rendered.** `relevantThemes` holds knowledge-base theme
+ids -- framework vocabulary, and §38I forbids showing where a reading comes from; a participant
+who sees `p-respect-contradictions` learns the framework's shape. `confidence` is an operational
+signal for the administrator: "moderate confidence" reads as a grade, which §42 rules out.
+
+In `JourneyFlow`:
+
+- **Parts are now separated.** `Part N of 14` above the title, which is now a heading rather than
+  a caption. Consecutive parts previously read as one undifferentiated list of 43 questions.
+- **The reflection is promised on arrival**, not sprung at the boundary: the first question of a
+  part says how many questions it holds and that an analysis follows.
+- The last question of a part offers **See your analysis**; the panel replaces it with Continue.
+- **A failed reflection never blocks progress.** It renders as a note with Continue live beneath
+  it. §75 puts the writing above our ability to interpret it, and the answers are already saved.
+- The answer is flushed before the request, because the server reads the part back out of
+  Firestore -- an unsaved last answer would be interpreted as though never written.
+
+**No reflection on question 43.** The synthesis on the next screen reads every answer including
+that part's, so a reflection there would spend a second model call, and a minute of waiting, to
+say a smaller version of what the participant is about to read in full.
+
+Revisiting a part costs nothing: the stored document is keyed by a fingerprint of the answers
+(§77), so identical answers return what was already written.
+
+### Resume was already correct -- checked, not assumed
+
+`updateProgress` writes `answered[]` and `currentQuestionId` on every autosave; `/api/journey/state`
+returns them; `JourneyFlow` restores both on load. A participant who closes the tab mid-part
+returns to the same question with their text. Nothing was added.
+
+### Admin status
+
+`ParticipantsPanel` showed a count and appended "· Complete", so a partially finished participant
+had no stated status. Now a **Status** column: Not started / Partially completed / Complete.
+
+Derived from the count and `completedAt` already on the row rather than stored as a field, because
+a stored status is a third copy of the same fact and can disagree with the count printed beside
+it. A word rather than a colour (§73, brand §24); the bar beside it stays decorative.
+
+### Verification
+
+`npx tsc --noEmit`, `npx eslint`, `npx next build` clean. **203 tests passing.**
+
+**Not verified:** the reflection has still never been generated through a browser. The trigger,
+the loading state and the failure path are unexercised -- CLAUDE.md permits build checks only.
+This is the same class of gap that hid the missing wire, so it is worth saying plainly rather
+than leaving in a footnote.
+
+---
+
 ## Handoff — start here
 
-**Done: S0-S14. The build plan is complete.**
+**Done: S0-S15.** The build plan is complete; S15 closed a gap found in live testing.
 
 ### State
 

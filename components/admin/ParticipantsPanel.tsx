@@ -90,12 +90,21 @@ export function ParticipantsPanel() {
                 <th scope="col" className="px-4 py-3 font-semibold text-ink">Name</th>
                 <th scope="col" className="px-4 py-3 font-semibold text-ink">Email</th>
                 <th scope="col" className="px-4 py-3 font-semibold text-ink">Invitation</th>
+                <th scope="col" className="px-4 py-3 font-semibold text-ink">Status</th>
                 <th scope="col" className="px-4 py-3 font-semibold text-ink">Progress</th>
               </tr>
             </thead>
             <tbody>
               {participants.map((p) => {
                 const percent = Math.round((p.answeredCount / p.totalQuestions) * 100);
+                // Derived from what the row already carries rather than stored:
+                // a status field would be a third copy of the same fact, able to
+                // disagree with the count printed beside it.
+                const status = p.completed
+                  ? "Complete"
+                  : p.answeredCount === 0
+                    ? "Not started"
+                    : "Partially completed";
                 return (
                   <tr key={p.uid} className="border-b border-line last:border-0">
                     <td className="px-4 py-3 text-ink">
@@ -108,10 +117,14 @@ export function ParticipantsPanel() {
                     <td className="px-4 py-3 font-mono text-xs text-ink-soft">
                       {p.inviteId}
                     </td>
+                    {/*
+                      A word, not a colour (§73, brand §24). The progress bar
+                      beside it is decorative; this column is the fact.
+                    */}
+                    <td className="px-4 py-3 whitespace-nowrap text-ink">{status}</td>
                     <td className="px-4 py-3">
                       <span className="text-ink">
                         {p.answeredCount} / {p.totalQuestions}
-                        {p.completed ? " · Complete" : ""}
                       </span>
                       <span
                         className="mt-1 block h-1.5 w-28 overflow-hidden rounded-full bg-line"

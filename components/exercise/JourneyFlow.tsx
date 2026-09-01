@@ -6,10 +6,12 @@ import { useRouter } from "next/navigation";
 import { useAuthState } from "@/components/auth/useAuthState";
 import { LogoutDialog } from "@/components/exercise/LogoutDialog";
 import { QuestionBlocks } from "@/components/exercise/QuestionBlocks";
+import { SectionReflection } from "@/components/exercise/SectionReflection";
 import { Button } from "@/components/ui/Button";
 import { Logo } from "@/components/ui/Logo";
 import { Notice } from "@/components/ui/Notice";
 import { apiFetch } from "@/lib/auth/client";
+import type { Interpretation } from "@/lib/ai/schema";
 import type { Exercise, ExerciseQuestion } from "@/lib/exercise/types";
 
 /**
@@ -22,6 +24,21 @@ import type { Exercise, ExerciseQuestion } from "@/lib/exercise/types";
 const AUTOSAVE_DELAY_MS = 1500;
 
 type SaveState = "idle" | "saving" | "saved" | "error";
+
+/**
+ * The end-of-part reflection (§59).
+ *
+ * "skipped" is a success: the part was left blank, so there is nothing to read
+ * back. It is separated from "failed" because the two mean opposite things to
+ * whoever reads this next -- one is the participant's choice, the other is ours
+ * to apologise for.
+ */
+type ReflectionState =
+  | { status: "idle" }
+  | { status: "loading" }
+  | { status: "ready"; interpretation: Interpretation }
+  | { status: "skipped" }
+  | { status: "failed"; message: string };
 
 type JourneyState = {
   participant: {
@@ -42,6 +59,7 @@ export function JourneyFlow() {
   const [draft, setDraft] = useState("");
   const [saveState, setSaveState] = useState<SaveState>("idle");
   const [loggingOut, setLoggingOut] = useState(false);
+  const [reflection, setReflection] = useState<ReflectionState>({ status: "idle" });
 
   // Answers held locally so moving between questions is instant and does not
   // depend on a round trip.
@@ -170,12 +188,45 @@ export function JourneyFlow() {
     setCurrentId(question.id);
     setDraft(answersRef.current[question.id] ?? "");
     setSaveState("idle");
+    setReflection({ status: "idle" });
 
     // The globals.css reduced-motion block cannot reach this: an explicit
     // behavior on scrollTo wins over the CSS scroll-behavior that block
     // overrides, so the preference has to be read here (§73, brand §15).
     const reduced = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
     window.scrollTo({ top: 0, behavior: reduced ? "auto" : "smooth" });
+  }
+
+  /**
+   * Generates (or re-reads) the reflection for the part just finished.
+   *
+   * The answer is flushed first: the server reads the part back out of
+   * Firestore, so an unsaved last answer would be interpreted as though it were
+   * never written. Regenerating is cheap on a revisit -- the stored document is
+   * keyed by a fingerprint of the answers (§77), so identical answers return
+   * what was already written rather than spending another model call.
+   */
+  async function showReflection(sectionId: string) {
+    if (timerRef.current) clearTimeout(timerRef.current);
+    await flush();
+
+    setReflection({ status: "loading" });
+
+    const result = await apiFetch<{ interpretation: Interpretation | null }>(
+      "/api/journey/reflect",
+      { method: "POST", body: JSON.stringify({ sectionId }) },
+    );
+
+    if (!result.ok) {
+      setReflection({ status: "failed", message: result.error });
+      return;
+    }
+
+    setReflection(
+      result.data.interpretation
+        ? { status: "ready", interpretation: result.data.interpretation }
+        : { status: "skipped" },
+    );
   }
 
   if (authLoading || (!state && !loadError)) {
@@ -206,6 +257,25 @@ export function JourneyFlow() {
   const previous = position > 1 ? questions[position - 2] : null;
   const next = position < total ? questions[position] : null;
 
+  const sectionQuestionIds = section?.questionIds ?? [];
+  const firstInSection = sectionQuestionIds[0] === current.id;
+  const lastInSection =
+    sectionQuestionIds[sectionQuestionIds.length - 1] === current.id;
+
+  /**
+   * The final question ends the exercise, and the synthesis on the next screen
+   * reads every answer including this part's. Offering a part reflection here
+   * would spend a second model call, and a minute of waiting, to say a smaller
+   * version of what the participant is about to read in full.
+   */
+  const partOffersReflection =
+    sectionQuestionIds.length > 0 &&
+    sectionQuestionIds[sectionQuestionIds.length - 1] !== questions[total - 1]?.id;
+  const offerReflectionNow = lastInSection && partOffersReflection;
+  const reflectionPending =
+    offerReflectionNow &&
+    (reflection.status === "idle" || reflection.status === "loading");
+
   return (
     <>
       <header className="border-b border-line">
@@ -225,11 +295,19 @@ export function JourneyFlow() {
       </header>
 
       <main className="mx-auto w-full max-w-3xl flex-1 px-6 py-10 sm:py-14">
-        <div className="flex items-baseline justify-between">
-          <p className="text-sm font-medium text-brand">
+        {/*
+          The exercise is fourteen parts, and which one you are in changes what
+          the question is asking. Showing only the title made consecutive parts
+          read as one long list of questions.
+        */}
+        <p className="text-sm font-medium text-brand">
+          Part {section?.order ?? 1} of {state.exercise.sections.length}
+        </p>
+        <div className="mt-1 flex items-baseline justify-between gap-4">
+          <h2 className="text-lg font-semibold tracking-tight text-ink">
             {section?.title ?? ""}
-          </p>
-          <p className="text-sm tabular-nums text-ink-soft">
+          </h2>
+          <p className="shrink-0 text-sm tabular-nums text-ink-soft">
             {String(position).padStart(2, "0")} / {total}
           </p>
         </div>
@@ -247,6 +325,19 @@ export function JourneyFlow() {
             style={{ width: `${percent}%` }}
           />
         </div>
+
+        {/*
+          Said on arrival rather than only at the boundary, so the reflection is
+          something to write towards rather than a surprise (§59).
+        */}
+        {firstInSection && partOffersReflection ? (
+          <p className="mt-4 text-sm leading-relaxed text-ink-soft">
+            {sectionQuestionIds.length}{" "}
+            {sectionQuestionIds.length === 1 ? "question" : "questions"} in this
+            part. At the end of it you&apos;ll get a short analysis of your
+            responses.
+          </p>
+        ) : null}
 
         {/* The question is the centre of the screen (§71, brand §29). */}
         <h1
@@ -294,6 +385,32 @@ export function JourneyFlow() {
           </p>
         </div>
 
+        {offerReflectionNow && reflection.status === "idle" ? (
+          <p className="mt-6 text-sm leading-relaxed text-ink-soft">
+            That&apos;s the last question in this part. When you&apos;re ready,
+            we&apos;ll read back through what you wrote in it.
+          </p>
+        ) : null}
+
+        {reflection.status === "ready" ? (
+          <SectionReflection
+            sectionTitle={section?.title ?? ""}
+            interpretation={reflection.interpretation}
+          />
+        ) : null}
+
+        {/*
+          A reflection that fails must never block the exercise: the answers are
+          already saved, and §75 puts the participant's writing above our
+          ability to interpret it. So this is a note, and Continue is live
+          underneath it either way.
+        */}
+        {reflection.status === "failed" ? (
+          <Notice tone="info" className="mt-8">
+            {reflection.message}
+          </Notice>
+        ) : null}
+
         <div className="mt-8 flex items-center justify-between gap-3">
           <Button
             variant="quiet"
@@ -303,7 +420,17 @@ export function JourneyFlow() {
             Back
           </Button>
 
-          {next ? (
+          {reflectionPending ? (
+            <Button
+              size="lg"
+              onClick={() => void showReflection(current.sectionId)}
+              disabled={reflection.status === "loading"}
+            >
+              {reflection.status === "loading"
+                ? "Reading your responses…"
+                : "See your analysis"}
+            </Button>
+          ) : next ? (
             <Button size="lg" onClick={() => void goTo(next)}>
               Continue
             </Button>
