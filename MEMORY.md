@@ -370,6 +370,70 @@ Six routes building.
 
 ---
 
+## Sprint 6 — Admin dashboard
+
+**Status:** complete
+
+### Routes
+
+| Route | Guard |
+| --- | --- |
+| `GET/POST /api/admin/invitations` | `requireAdmin` |
+| `POST .../[id]/reveal-password` | `requireFreshAdmin` + rate limit |
+| `POST .../[id]/rotate-password` | `requireFreshAdmin` + rate limit |
+| `POST .../[id]/status` | `requireAdmin` |
+| `GET /api/admin/participants` | `requireAdmin` |
+| `GET /api/admin/overview` | `requireAdmin`, aggregate counts |
+| `GET /api/admin/system` | `requireAdmin` |
+| `GET /api/admin/me` | `requireAdmin` |
+
+### The admin address is not in the client bundle
+
+The shell asks `/api/admin/me` and renders the answer, rather than comparing emails
+client-side. The same `requireAdmin()` that guards every privileged route decides, so there is
+no admin address shipped to browsers and no second implementation to drift (§21, §89).
+
+### Reveal (§25, §27)
+
+Masked by default. Revealing requires a **real Google reauthentication** when `auth_time` is
+stale: the server returns `reauthentication_required`, the client calls
+`reauthenticateWithPopup`, then retries. Decryption happens server-side only; the response
+carries the plaintext and never the hash or the key, and nothing is logged (§52).
+
+The plaintext lives only in component state — never `localStorage`, `sessionStorage`,
+IndexedDB, a URL or a log (§28) — and is dropped on Hide.
+
+### Share (§29, §64)
+
+`navigator.share()` where available, clipboard otherwise. The password is fetched **only when
+the administrator explicitly shares**, so it is not sitting in memory for every listed row. The
+share text carries no internal ids or implementation detail. Invitation links are built from
+`window.location.origin`, so a link copied from a preview deployment points at that deployment.
+
+### Participants (§50)
+
+Identity, binding and progress. **Deliberately not answers, interpretations or the synthesis** —
+§50 asks that admin access be considered rather than a window onto everything, and nothing in
+the product requires reading someone's private reflection from a listing.
+
+### Settings reports presence, not values
+
+`/api/admin/system` returns booleans for each secret, not masked values. §51 keeps keys
+server-side, and the only useful question on a settings screen is whether a key is set. Gemini
+is reported as a count. This is also the §98 setup surface: it names the exact missing
+environment variable.
+
+### Decision: no stub for AI configuration
+
+The "AI configuration" nav item is **not** listed yet. It arrives in S8 with the model router it
+configures. Listing it now would be a link to a stub, which §98 rules out.
+
+### Verification
+
+`npm run build`, `npm run lint`, `npx tsc --noEmit` clean, 78 tests passing. 17 routes building.
+
+---
+
 ## Environment variables
 
 Present in `.env`: seven `NEXT_PUBLIC_FIREBASE_*`, plus `GEMINI_API_KEY_1`, `GEMINI_API_KEY_2`,
@@ -394,4 +458,4 @@ Still required before the application can run end-to-end:
 
 ## Next
 
-Sprint 6 — admin dashboard: invitation management, reveal behind reauthentication, rotation, share.
+Sprint 7 — exercise engine: one question per screen, debounced autosave, resume.
