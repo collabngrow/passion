@@ -668,7 +668,7 @@ Still required before the application can run end-to-end:
 | Item | State |
 | --- | --- |
 | Firebase project | `passion-f0aec`, Google auth enabled |
-| Firestore | created, **still on open test-mode rules — replaced in S11** |
+| Firestore | created; **deny-all rules deployed by the owner (S11)** — no client can read or write |
 | `gh` | authenticated as `collabngrow` |
 | Vercel | CLI installed; project not yet linked, deployment is owner-driven |
 
@@ -722,10 +722,15 @@ pricing decision would rest on.
 - **The written-in amount shares that ceiling.** `MAX_WORTH_RUPEES = 500_000` is both the cap on
   a custom entry and the value of "Priceless", so nothing written in can outrank the top option,
   and one joke entry cannot drag the average a price would be set from.
-- **"I would never pay" is still not zero.** It stays out of the average -- a refusal is not an
-  offer of Rs 0 -- but ranks *below* every amount in the before/after comparison, since moving
-  from refusal to Rs 200 is a genuine increase. Ranking and averaging use different mappings on
-  purpose, and a test pins both.
+- **"I would never pay" is valued at Rs 0** (owner's decision, replacing an earlier version
+  that excluded it). Both ends of the scale now carry a number, so every response lands in one
+  mean -- a summary that dropped the refusals would report what the willing half would pay and
+  label it what participants think this is worth. Both ends are counted on their own beside the
+  mean, and the panel names both prices in its footnote.
+- **There is now exactly one mapping.** The earlier version ranked a refusal below every amount
+  for the before/after comparison while excluding it from the average, which took two functions
+  that could disagree. With the floor priced at zero, `amountFor` serves both and the `rank`
+  helper is gone. Refusal -> Rs 200 still reads as an increase.
 - **A written-in amount is judged by the amount.** The source document lumps Q3 options 6-10
   together for the "Rs 2,000+" stat, which would count someone who wrote "Rs 50" as a Rs 2,000+
   response. The custom value is compared against the threshold instead.
@@ -799,7 +804,7 @@ restore the session on reopen without flashing a signed-out view.
 
 ## Sprint 11 - Firestore rules and indexes
 
-**Status:** written and verified; **NOT YET DEPLOYED** -- see below.
+**Status:** complete. **Rules deployed by the owner** -- the database is closed.
 
 ### Deny-all is the final state, not a placeholder
 
@@ -828,11 +833,11 @@ A composite index is only needed for an equality filter combined with an order o
 field, and none exists here. The file documents each query so the emptiness reads as a finding
 rather than an omission.
 
-### Not deployed
+### Deployment
 
-`firebase deploy --only firestore` was blocked by the sandbox permission classifier. **Firestore
-is still on open test-mode rules** -- the one live security gap. `npm run deploy:rules` runs it;
-the CLI is already authenticated and `passion-f0aec` is reachable.
+`firebase deploy --only firestore` was blocked by the sandbox permission classifier here, so the
+owner ran it. **Open test-mode rules are gone.** `npm run deploy:rules` repeats it if the rules
+ever change; the CLI is authenticated and `passion-f0aec` is reachable.
 
 ### Verification
 
@@ -841,9 +846,72 @@ including `/journey/survey`, `/offline` and `/manifest.webmanifest`.
 
 ---
 
-## Next
+## Handoff — start here
 
-S12 accessibility, S13 tests/docs, S14 ship. Plus two open items:
+**Done: S0-S11. Next: S12 (accessibility and polish), then S13 (tests/docs), S14 (ship).**
 
-- **Deploy the Firestore rules** (`npm run deploy:rules`). Until then the database is open.
-- **`maxDuration: 300` on the synthesis route** exceeds Vercel's Hobby function limit.
+### State
+
+| | |
+| --- | --- |
+| Branch | `main`, clean, **three commits ahead of `origin`** |
+| Build | `npx next build`, `npx eslint`, `npx tsc --noEmit` all clean |
+| Tests | **120 passing** across 8 files (`npx vitest run`) |
+| Routes | 25 |
+| Firestore | deny-all rules **live** |
+| Live-verified | Firestore round-trip, all three Gemini keys, one real generation end to end |
+
+Prefer `npx <tool>` over `npm run <script>`: the sandbox classifier began blocking `npm run`
+once `deploy:rules` was added to `package.json`.
+
+### S12 is an audit, not a rewrite
+
+The plan's line: semantic HTML, keyboard navigation, visible focus rings, labelled inputs,
+accessible modals, `prefers-reduced-motion`, contrast checks, never colour alone for state
+(S73, brand S24), and human error copy with no raw Firebase/Firestore/Gemini text reaching a
+user (S74, brand S20).
+
+**Most of that was built in as it went, so check before changing anything.** Verified present:
+
+- `prefers-reduced-motion: reduce` is handled globally in `app/globals.css`, along with a
+  `:focus-visible` outline in the brand colour.
+- `LogoutDialog` has `role="dialog"`, `aria-modal`, Escape-to-cancel, focus moved in on open and
+  restored on close.
+- The journey autosave status sits in a `role="status" aria-live="polite"` region.
+- `Notice` pairs every tone with a text prefix and the right ARIA role; progress bars carry
+  `role="img"` with a percentage label. State is never colour alone.
+- Every API failure leaves the server as a human sentence via `ApiError`/`withErrorHandling`.
+- Radio groups use real `<label>`s; the survey uses `fieldset`/`legend`.
+
+Genuine gaps found while writing this, in rough order of payoff:
+
+1. **`LogoutDialog` has no Tab trap.** Focus enters and is restored, but Tab can still walk out
+   of the dialog into the page behind it. The one modal in the product.
+2. **No skip link.** The admin shell in particular puts a nav list before the workspace on every
+   page, so a keyboard user tabs through it every time.
+3. **Contrast on the admin navigation.** `text-on-brand/70` and `/75` in `AdminShell` are white
+   at 70-75% opacity on `--color-brand-dark` (#c11c45) -- the most likely AA failure in the
+   product. Body text is fine: `--color-ink-soft` (#666) on white is 5.7:1.
+4. **Focus management in `JourneyFlow`.** One question per screen; check that advancing moves
+   focus to the new question rather than leaving it on a button that has moved.
+5. Heading order on the two newest pages, `/journey/survey` and `/offline`.
+
+### Two open items that are not S12
+
+- **`maxDuration: 300` on `/api/journey/synthesis` exceeds Vercel's Hobby 60s function limit.**
+  Owner's decision, still open: a plan that permits it, or tighten `thinkingBudget` further.
+  Nothing else blocks deployment.
+- **Three commits are unpushed.** CLAUDE.md requires pushing as `collabngrow`.
+
+### Conventions this codebase holds to
+
+- Comments explain *why*, and name the failure a decision prevents. Section numbers (S38I, S92)
+  refer to `master_prompt.md`; `brand_guidelines.md` numbers separately.
+- Anything server-side starts `import "server-only"`. The browser gets Firebase **auth only** --
+  `lib/firebase/client-boundary.test.ts` fails if that ever changes, because the deployed
+  deny-all rules depend on it.
+- Tests are pure-unit: no Firestore emulator, no browser test. CLAUDE.md forbids browser
+  verification -- build checks at most.
+- `lib/**/*.generated.ts` and `public/icons/` are gitignored and rebuilt by the `scripts/build-*`
+  scripts, wired into `generate` and run before dev/build/test.
+- CLAUDE.md: **MEMORY.md is updated in the same commit as the code it describes.**

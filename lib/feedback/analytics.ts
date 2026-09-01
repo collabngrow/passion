@@ -46,6 +46,8 @@ export type FeedbackSummary = {
   averageWillingness: { rupees: number | null; sample: number };
   /** Counted as well as valued, so the mean can be read in context. */
   pricelessCount: number;
+  /** The other end of the scale, for the same reason. */
+  refusalCount: number;
   /** Q2 against Q3 for the people who answered both. */
   shift: { increased: number; unchanged: number; decreased: number; sample: number };
   /** Headline percentages for the stat cards. */
@@ -57,19 +59,29 @@ export type FeedbackSummary = {
 /** The threshold behind the two "₹2,000+" stat cards. */
 export const HIGH_VALUE_RUPEES = 2000;
 
+/** Option 1 on both price questions: "I would never pay". */
+export const REFUSAL_VALUE = 1;
+/** What that refusal is worth. The floor of the scale. */
+export const REFUSAL_RUPEES = 0;
+
 /**
- * The rupee figure a selection stands for, or null when it is not an amount.
+ * The rupee figure a selection stands for, or null when it cannot be priced.
  *
- * "Priceless" is valued at the top of the scale rather than excluded, so it can
- * be quantified alongside everything else. It is still counted separately in
- * the summary, because a mean that silently contains a ceiling value should be
- * readable next to how many people chose that ceiling.
+ * Both ends of the scale are numbers here, by decision: "I would never pay" is
+ * worth ₹0 and "Priceless" is worth the ceiling. That makes every response
+ * countable in one mean, which is what the mean is for -- a summary that
+ * quietly dropped the refusals would report what the willing half would pay
+ * and call it what participants think this is worth.
  *
- * Option 1 remains absent: a refusal to pay is not an offer of zero, and
- * averaging it as one would put a figure in someone's mouth that they
- * explicitly declined to give.
+ * Both ends stay visible in the summary alongside the mean: `pricelessCount`
+ * for the ceiling, and Q3's own distribution for the floor. An average built
+ * from a scale with fixed ends has to be readable next to how many people
+ * chose an end.
+ *
+ * Only an unusable written-in amount returns null.
  */
 export function amountFor(value: number, custom: number | null): number | null {
+  if (value === REFUSAL_VALUE) return REFUSAL_RUPEES;
   if (value === PERCEIVED_WORTH_PRICELESS_VALUE) return PRICELESS_RUPEES;
   if (value === PERCEIVED_WORTH_CUSTOM_VALUE) {
     return typeof custom === "number" && Number.isFinite(custom) && custom > 0
@@ -77,19 +89,6 @@ export function amountFor(value: number, custom: number | null): number | null {
       : null;
   }
   return PAY_OPTION_MIDPOINTS[value] ?? null;
-}
-
-/**
- * A comparable position on the price scale, for the before/after comparison.
- *
- * This differs from `amountFor` in exactly one place, on purpose. Moving from
- * "I would never pay" to "₹200" is a real increase, so a refusal has to rank
- * below every amount -- but it is still not a claim that the exercise is worth
- * ₹0, so it stays out of the average.
- */
-function rank(value: number, custom: number | null): number | null {
-  if (value === 1) return 0;
-  return amountFor(value, custom);
 }
 
 function percentOf(count: number, total: number): number {
@@ -142,8 +141,11 @@ export function summariseFeedback(records: FeedbackRecord[]): FeedbackSummary {
 
   for (const record of records) {
     if (record.willingnessToPay === null) continue;
-    const before = rank(record.willingnessToPay, null);
-    const after = rank(record.perceivedWorth, record.perceivedWorthCustom);
+    // The same mapping the average uses. With both ends of the scale carrying
+    // a number, a position on it and a price are the same thing, and a second
+    // mapping would only be a way for the two figures to disagree.
+    const before = amountFor(record.willingnessToPay, null);
+    const after = amountFor(record.perceivedWorth, record.perceivedWorthCustom);
     if (before === null || after === null) continue;
 
     if (after > before) increased += 1;
@@ -181,6 +183,7 @@ export function summariseFeedback(records: FeedbackRecord[]): FeedbackSummary {
     pricelessCount: worthValues.filter(
       (value) => value === PERCEIVED_WORTH_PRICELESS_VALUE,
     ).length,
+    refusalCount: worthValues.filter((value) => value === REFUSAL_VALUE).length,
     shift: {
       increased,
       unchanged,

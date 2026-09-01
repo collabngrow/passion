@@ -82,10 +82,9 @@ export const PRICELESS_RUPEES = MAX_WORTH_RUPEES;
 /**
  * Midpoints in rupees, for the admin average.
  *
- * Option 1 is absent by design: a refusal to pay is not an offer of zero, and
- * averaging it as a figure would put words in someone's mouth. It is counted
- * separately in the dashboard. "Priceless" is handled above, not here, because
- * it is a fixed point on the scale rather than the midpoint of a bracket.
+ * Only the numbered brackets appear here, since only they have a midpoint.
+ * The two ends of the scale are fixed points rather than brackets and are
+ * valued in `amountFor`: option 1 at zero, "Priceless" at the ceiling above.
  */
 export const PAY_OPTION_MIDPOINTS: Record<number, number> = {
   2: 200,

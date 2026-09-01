@@ -2,6 +2,7 @@ import { describe, expect, it } from "vitest";
 
 import {
   HIGH_VALUE_RUPEES,
+  REFUSAL_RUPEES,
   amountFor,
   labelFor,
   summariseFeedback,
@@ -40,11 +41,13 @@ describe("amountFor", () => {
   });
 
   /**
-   * A refusal to pay is not an offer of zero. Averaging it as one would put a
-   * figure in someone's mouth that they explicitly declined to give.
+   * Both ends of the scale carry a number, so every response can be counted in
+   * one mean. Dropping the refusals would report what the willing half would
+   * pay and label it what participants think this is worth.
    */
-  it("refuses to turn a refusal into a number", () => {
-    expect(amountFor(1, null)).toBeNull();
+  it("values a refusal at the floor of the scale", () => {
+    expect(amountFor(1, null)).toBe(REFUSAL_RUPEES);
+    expect(REFUSAL_RUPEES).toBe(0);
   });
 
   it("uses the written-in amount for option 9, and only a usable one", () => {
@@ -98,15 +101,16 @@ describe("summariseFeedback", () => {
     expect(summary.averageWillingness.sample).toBe(1);
   });
 
-  it("leaves a refusal out of the average without dropping the response", () => {
+  it("averages a refusal at zero and counts it separately", () => {
     const summary = summariseFeedback([
       record({ perceivedWorth: 2 }), // ₹200
       record({ perceivedWorth: 4 }), // ₹850
-      record({ perceivedWorth: 1 }), // refusal — not an amount
+      record({ perceivedWorth: 1 }), // refusal — ₹0
     ]);
 
-    expect(summary.averageWorth.sample).toBe(2);
-    expect(summary.averageWorth.rupees).toBe(525);
+    expect(summary.averageWorth.sample).toBe(3);
+    expect(summary.averageWorth.rupees).toBe(350);
+    expect(summary.refusalCount).toBe(1);
     expect(summary.total).toBe(3);
   });
 
@@ -151,18 +155,18 @@ describe("summariseFeedback", () => {
     });
 
     /**
-     * "I would never pay" to "₹200" is a genuine increase, so a refusal has to
-     * rank below every amount for the comparison -- while still staying out of
-     * the average, where treating it as ₹0 would be a different claim.
+     * "I would never pay" to "₹200" is a genuine increase, and with the floor
+     * priced at zero the comparison and the average agree about it rather than
+     * needing two different mappings.
      */
-    it("ranks a refusal below every amount without averaging it as zero", () => {
+    it("ranks a refusal below every amount, at the same zero it averages", () => {
       const summary = summariseFeedback([
         record({ willingnessToPay: 1, perceivedWorth: 2 }),
       ]);
 
       expect(summary.shift.increased).toBe(1);
-      expect(summary.averageWillingness.rupees).toBeNull();
-      expect(summary.averageWillingness.sample).toBe(0);
+      expect(summary.averageWillingness.rupees).toBe(REFUSAL_RUPEES);
+      expect(summary.averageWillingness.sample).toBe(1);
     });
 
     it("ranks 'Priceless' above every bracket a participant could have named", () => {

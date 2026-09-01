@@ -6,6 +6,7 @@ import { Notice } from "@/components/ui/Notice";
 import { apiFetch } from "@/lib/auth/client";
 import {
   HIGH_VALUE_RUPEES,
+  REFUSAL_RUPEES,
   labelFor,
   type DistributionBucket,
   type FeedbackSummary,
@@ -216,8 +217,8 @@ export function FeedbackPanel() {
             <section className="rounded-lg border border-line bg-surface px-6 py-5">
               <h2 className="font-semibold text-ink">Average perceived worth</h2>
               <p className="mt-1 text-sm text-ink-soft">
-                Q3, over the {summary.averageWorth.sample} whose answer carries an
-                amount.
+                Q3, across {summary.averageWorth.sample}{" "}
+                {summary.averageWorth.sample === 1 ? "response" : "responses"}.
               </p>
 
               <p className="mt-4 text-4xl font-semibold text-brand">
@@ -236,8 +237,10 @@ export function FeedbackPanel() {
                   </dd>
                 </div>
                 <div className="flex justify-between gap-4">
-                  <dt className="text-ink-soft">Said priceless</dt>
-                  <dd className="tabular-nums text-ink">{summary.pricelessCount}</dd>
+                  <dt className="text-ink-soft">Said priceless / would never pay</dt>
+                  <dd className="tabular-nums text-ink">
+                    {summary.pricelessCount} / {summary.refusalCount}
+                  </dd>
                 </div>
                 <div className="flex justify-between gap-4">
                   <dt className="text-ink-soft">Valued it higher afterwards</dt>
@@ -254,14 +257,14 @@ export function FeedbackPanel() {
               </dl>
 
               {/*
-                An average that silently contains a ceiling value has to say so,
-                or it reads as a market price rather than a scale with a top.
+                An average built from a scale with fixed ends has to name them,
+                or it reads as a market price rather than a mean over a scale.
               */}
               <p className="mt-4 text-xs leading-relaxed text-ink-soft">
-                &ldquo;Priceless&rdquo; counts as {rupees.format(PRICELESS_RUPEES)},
-                the top of the scale, and is also counted on its own above.
-                &ldquo;I would never pay&rdquo; is excluded — a refusal is not an
-                offer of zero.
+                Every response is priced: &ldquo;Priceless&rdquo; at{" "}
+                {rupees.format(PRICELESS_RUPEES)}, the top of the scale, and
+                &ldquo;I would never pay&rdquo; at {rupees.format(REFUSAL_RUPEES)}.
+                Both ends are counted on their own above.
               </p>
             </section>
           </div>

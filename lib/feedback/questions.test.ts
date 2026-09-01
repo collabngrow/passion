@@ -69,11 +69,11 @@ describe("validators", () => {
 
 describe("average worth mapping", () => {
   /**
-   * Option 1 is a refusal, not zero willingness to pay, and "Priceless" is not
-   * a large number. Averaging either as a figure would misrepresent it, so both
-   * are excluded and reported separately in the dashboard.
+   * Only the numbered brackets have a midpoint. The two ends of the scale are
+   * fixed points priced in `amountFor` -- option 1 at zero, "Priceless" at the
+   * ceiling -- and a midpoint here would be a second, disagreeing answer.
    */
-  it("excludes the options that are not amounts", () => {
+  it("holds bracket midpoints only, not the ends of the scale", () => {
     expect(PAY_OPTION_MIDPOINTS[1]).toBeUndefined();
     expect(PAY_OPTION_MIDPOINTS[PERCEIVED_WORTH_CUSTOM_VALUE]).toBeUndefined();
     expect(PAY_OPTION_MIDPOINTS[PERCEIVED_WORTH_PRICELESS_VALUE]).toBeUndefined();
