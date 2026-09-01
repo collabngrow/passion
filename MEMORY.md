@@ -1356,9 +1356,38 @@ drops the break promise, which would otherwise imply there was still something t
 The client mirrors both facts in state so a part closes the instant its analysis arrives rather
 than on the next load. The server remains the decision.
 
+### /exercises, and the hub the product now has
+
+Onboarding no longer drops a participant straight into the reflection exercise. All three
+`/journey` redirects in `InviteFlow` -- resume, bind, and profile completion -- now land on
+`/exercises`, where they choose. `All exercises` sits before `Take a break` in the journey
+header and returns them to it, flushing the pending autosave on the way out.
+
+**The catalogue is data.** `lib/exercises/catalog.ts` is a list a new exercise joins, not a page
+someone edits around -- the same principle that keeps the exercise itself out of the components
+(S57). It carries an `available` flag that nothing sets false today: it exists so that
+announcing a forthcoming exercise does not need a second, parallel way of listing things, which
+is how a "coming soon" section drifts out of step with the real one.
+
+**Progress is not in the catalogue.** That module describes what exists; how far a particular
+person has gone is answered per request by `GET /api/exercises`, from their own progress and
+nobody else's. That route is separate from `/api/journey/state` deliberately -- state ships the
+whole exercise, ~90 KB of questions a list of cards has no use for -- and sits behind
+`requireParticipant` like every other journey route. The catalogue is not a secret; a
+participant's position in it is.
+
+The card resolves which part someone is in from `currentQuestionId` rather than from the
+answered count, because someone who skipped a question is further along than their total
+suggests, and the card should say where they actually are.
+
+One thing left explicitly undone: the second exercise will need its own progress reading in that
+route. The `entry.id === "reflection"` branch is written so that a new exercise gets `null`
+progress rather than silently inheriting the reflection exercise's figures.
+
 ### Verification
 
-`npx tsc --noEmit`, `npx eslint`, `npx next build` clean. **203 tests passing.**
+`npx tsc --noEmit`, `npx eslint`, `npx next build` clean. **203 tests passing.** 36 routes,
+including `/exercises` and `/api/exercises`.
 
 **No test covers the lock.** The guard lives in a route, and routes have no test harness here --
 the suite is pure-unit. It is one `includes` against a field the request already carries, but it

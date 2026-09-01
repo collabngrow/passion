@@ -276,6 +276,13 @@ export function JourneyFlow() {
    * may still be pending, and the whole promise the break makes is that nothing
    * was lost by stepping away.
    */
+  /** Leaves for the hub, saving first. */
+  async function goToExercises() {
+    if (timerRef.current) clearTimeout(timerRef.current);
+    await flush();
+    router.push("/exercises");
+  }
+
   async function takeABreak() {
     if (timerRef.current) clearTimeout(timerRef.current);
     await flush();
@@ -363,6 +370,19 @@ export function JourneyFlow() {
               leaving: taking a break is what most people actually mean, and
               logging out costs them the invitation password to undo (§19, §20).
             */}
+            {/*
+              Leaving is safe and does not need confirming: the autosave has
+              already run, and nothing here is lost by going to look at the
+              list. Flushed anyway, because the debounce means the last few
+              seconds of typing may still be pending.
+            */}
+            <button
+              type="button"
+              onClick={() => void goToExercises()}
+              className="rounded-md px-3 py-2 text-sm text-ink-soft hover:bg-brand-soft hover:text-ink"
+            >
+              All exercises
+            </button>
             {!breakState ? (
               <button
                 type="button"

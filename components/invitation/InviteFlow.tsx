@@ -60,7 +60,7 @@ export function InviteFlow({ inviteId }: { inviteId: string }) {
       }
 
       if (result.data.step === "ready") {
-        router.replace("/journey");
+        router.replace("/exercises");
         return;
       }
 
@@ -145,7 +145,7 @@ export function InviteFlow({ inviteId }: { inviteId: string }) {
       }
 
       if (bind.data.needsProfile) setStep("profile");
-      else router.replace("/journey");
+      else router.replace("/exercises");
     } catch (caught) {
       if (!(caught instanceof SignInCancelled)) {
         setError("We couldn't complete sign-in. Please try again.");
@@ -243,7 +243,7 @@ export function InviteFlow({ inviteId }: { inviteId: string }) {
           {step === "profile" && user?.email ? (
             <ProfileStep
               email={user.email}
-              onComplete={() => router.replace("/journey")}
+              onComplete={() => router.replace("/exercises")}
             />
           ) : null}
 
