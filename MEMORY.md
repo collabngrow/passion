@@ -1289,11 +1289,37 @@ and the answered count is computed in the handler rather than during render, bec
 is a ref -- reading it in the body breaks the rules of hooks and goes stale on the next change.
 The lint rule caught that, correctly, on the first attempt.
 
+### The part introduction, and a name for the thing
+
+`Reflection Exercise` is now centred in the journey header, beneath the logo and the two
+controls rather than beside the logo: as a masthead it reads as the name of what this is, and
+centring it under the row keeps it from colliding with the buttons on a narrow screen. It
+replaces the label `Your journey`.
+
+`PartIntro` opens every part, on the same screen as that part's first question. Not an
+interstitial: a screen of its own would put a page between finishing one part and starting the
+next, for content that is three sentences long.
+
+It states what the part costs and what it gives back before any of it is asked -- `Part 3 · The
+Person You Want to Become`, how many questions it holds, and that an analysis follows once they
+are all answered. The closing part says the opposite in the same slot, because its analysis *is*
+the final synthesis and promising a separate one would be a lie the next screen exposes.
+
+**The break promise lives here too**, which is the placement worth keeping: someone deciding
+whether to start a part is exactly who needs to know that stopping midway is safe, and that is
+the moment they would otherwise close the tab unsure.
+
+One thing the first render got wrong: the running header printed the part title immediately
+above a card that printed it again, three lines apart. That reads as a rendering fault, not as
+emphasis, so the header's title is suppressed on the screen where `PartIntro` appears. The
+progress counter stays -- it is the one number that is still doing work there.
+
 ### Verification
 
 `npx tsc --noEmit`, `npx eslint`, `npx next build` clean. **203 tests passing.**
 
-**Not verified:** neither the reflection nor the break card has been through a browser. The trigger,
+**Not verified:** none of the reflection, the break card or the part introduction has been
+through a browser. The trigger,
 the loading state and the failure path are unexercised -- CLAUDE.md permits build checks only.
 This is the same class of gap that hid the missing wire, so it is worth saying plainly rather
 than leaving in a footnote.

@@ -6,6 +6,7 @@ import { useRouter } from "next/navigation";
 import { useAuthState } from "@/components/auth/useAuthState";
 import { BreakCard } from "@/components/exercise/BreakCard";
 import { LogoutDialog } from "@/components/exercise/LogoutDialog";
+import { PartIntro } from "@/components/exercise/PartIntro";
 import { QuestionBlocks } from "@/components/exercise/QuestionBlocks";
 import { SectionReflection } from "@/components/exercise/SectionReflection";
 import { Button } from "@/components/ui/Button";
@@ -304,11 +305,9 @@ export function JourneyFlow() {
   return (
     <>
       <header className="border-b border-line">
-        <div className="mx-auto flex max-w-3xl items-center justify-between px-6 py-4">
-          <div className="flex items-center gap-3">
-            <Logo size="sm" />
-            <span className="text-sm font-medium text-ink">Your journey</span>
-          </div>
+        <div className="mx-auto max-w-3xl px-6 py-4">
+        <div className="flex items-center justify-between">
+          <Logo size="sm" />
           <div className="flex items-center gap-1">
             {/*
               Offered before Log out, and worded as stopping rather than
@@ -332,6 +331,16 @@ export function JourneyFlow() {
               Log out
             </button>
           </div>
+        </div>
+
+        {/*
+          Centred beneath the controls rather than beside the logo, so it reads
+          as the name of the thing rather than as one more item in a toolbar --
+          and so it does not collide with the buttons on a narrow screen.
+        */}
+        <p className="mt-2 text-center text-sm font-semibold tracking-tight text-ink">
+          Reflection Exercise
+        </p>
         </div>
       </header>
 
@@ -357,8 +366,13 @@ export function JourneyFlow() {
           Part {section?.order ?? 1} of {state.exercise.sections.length}
         </p>
         <div className="mt-1 flex items-baseline justify-between gap-4">
+          {/*
+            Suppressed on the first question of a part, where PartIntro right
+            below already names the part -- printing the title twice in three
+            lines reads as a rendering fault rather than as emphasis.
+          */}
           <h2 className="text-lg font-semibold tracking-tight text-ink">
-            {section?.title ?? ""}
+            {firstInSection ? "" : (section?.title ?? "")}
           </h2>
           <p className="shrink-0 text-sm tabular-nums text-ink-soft">
             {String(position).padStart(2, "0")} / {total}
@@ -380,16 +394,18 @@ export function JourneyFlow() {
         </div>
 
         {/*
-          Said on arrival rather than only at the boundary, so the reflection is
-          something to write towards rather than a surprise (§59).
+          Shown on the first question of a part, so the analysis is something to
+          write towards rather than a surprise, and so the promise about
+          breaking off is made before the part is started rather than after
+          someone has already wondered (§59).
         */}
-        {firstInSection && partOffersReflection ? (
-          <p className="mt-4 text-sm leading-relaxed text-ink-soft">
-            {sectionQuestionIds.length}{" "}
-            {sectionQuestionIds.length === 1 ? "question" : "questions"} in this
-            part. At the end of it you&apos;ll get a short analysis of your
-            responses.
-          </p>
+        {firstInSection && section ? (
+          <PartIntro
+            partNumber={section.order}
+            title={section.title}
+            questionCount={sectionQuestionIds.length}
+            offersAnalysis={partOffersReflection}
+          />
         ) : null}
 
         {/* The question is the centre of the screen (§71, brand §29). */}
