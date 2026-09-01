@@ -300,7 +300,12 @@ export function FeedbackPanel() {
 
           <section className="mt-6">
             <h2 className="font-semibold text-ink">Individual responses</h2>
-            <div className="mt-3 overflow-x-auto rounded-lg border border-line">
+            <div
+              tabIndex={0}
+              role="region"
+              aria-label="Individual responses"
+              className="mt-3 overflow-x-auto rounded-lg border border-line"
+            >
               <table className="w-full min-w-[52rem] border-collapse bg-surface text-left text-sm">
                 <thead>
                   <tr className="border-b border-line bg-brand-soft">

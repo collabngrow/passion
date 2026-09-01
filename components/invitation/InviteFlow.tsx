@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 
 import { GoogleButton } from "@/components/auth/GoogleButton";
@@ -32,6 +32,9 @@ type ServerStep = Exclude<Step, "loading"> | "ready";
 export function InviteFlow({ inviteId }: { inviteId: string }) {
   const router = useRouter();
   const { user, loading: authLoading } = useAuthState();
+
+  const stepRef = useRef<HTMLDivElement>(null);
+  const previousStepRef = useRef<Step | null>(null);
 
   const [step, setStep] = useState<Step>("loading");
   const [password, setPassword] = useState("");
@@ -82,6 +85,25 @@ export function InviteFlow({ inviteId }: { inviteId: string }) {
       active = false;
     };
   }, [authLoading, user, refresh]);
+
+  /*
+   * Each step replaces the entire screen. The control that caused the move --
+   * the Continue button, the Google button -- unmounts with it, so focus falls
+   * back to <body>: a keyboard user restarts from the top of the document and a
+   * screen reader announces nothing, including "this invitation belongs to
+   * another account". Focus is moved to the new step instead (§73).
+   */
+  useEffect(() => {
+    const previous = previousStepRef.current;
+    previousStepRef.current = step;
+
+    // Not on the first settle: "loading" resolving into the first real step is
+    // the page arriving, and taking focus off the top of a page someone just
+    // opened is the rudeness this is meant to prevent.
+    if (previous === null || previous === "loading" || previous === step) return;
+
+    stepRef.current?.focus();
+  }, [step]);
 
   async function handlePassword(event: React.FormEvent) {
     event.preventDefault();
@@ -140,7 +162,11 @@ export function InviteFlow({ inviteId }: { inviteId: string }) {
           <Logo size="lg" label="CollabNGrow" priority />
         </div>
 
-        <div className="mt-10">
+        <div
+          ref={stepRef}
+          tabIndex={-1}
+          className="mt-10 outline-none"
+        >
           {step === "loading" ? (
             <p className="text-center text-ink-soft" role="status">
               Loading…

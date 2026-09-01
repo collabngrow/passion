@@ -26,8 +26,8 @@ export function LogoutDialog({
   const dialogRef = useRef<HTMLDivElement>(null);
   const cancelRef = useRef<HTMLButtonElement>(null);
 
-  // Move focus into the dialog and return it on close, and let Escape cancel
-  // (§73: accessible modals).
+  // Move focus into the dialog and return it on close, keep Tab inside it, and
+  // let Escape cancel (§73: accessible modals).
   useEffect(() => {
     if (!open) return;
 
@@ -35,7 +35,35 @@ export function LogoutDialog({
     cancelRef.current?.focus();
 
     function onKeyDown(event: KeyboardEvent) {
-      if (event.key === "Escape") onCancel();
+      if (event.key === "Escape") {
+        onCancel();
+        return;
+      }
+
+      if (event.key !== "Tab") return;
+
+      // aria-modal alone does not stop Tab: without this, the third Tab leaves
+      // the dialog for the journey behind it, where a keyboard user is
+      // operating a page the dialog claims has been made inert. The dialog
+      // holds exactly two buttons, so the ends of the list are the wrap points.
+      const focusable = dialogRef.current?.querySelectorAll<HTMLElement>(
+        "button:not([disabled])",
+      );
+      if (!focusable || focusable.length === 0) return;
+
+      const first = focusable[0];
+      const last = focusable[focusable.length - 1];
+      const active = document.activeElement;
+
+      if (event.shiftKey ? active === first : active === last) {
+        event.preventDefault();
+        (event.shiftKey ? last : first).focus();
+      } else if (!dialogRef.current?.contains(active)) {
+        // Focus escaped some other way (a click on the backdrop, say); bring it
+        // back rather than letting Tab continue from outside.
+        event.preventDefault();
+        first.focus();
+      }
     }
 
     document.addEventListener("keydown", onKeyDown);

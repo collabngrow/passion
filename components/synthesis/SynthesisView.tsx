@@ -260,7 +260,7 @@ export function SynthesisView() {
             <h2 className="text-2xl font-semibold leading-snug text-on-brand sm:text-3xl">
               Who are you choosing to become?
             </h2>
-            <p className="mx-auto mt-4 max-w-md leading-relaxed text-on-brand/85">
+            <p className="mx-auto mt-4 max-w-md leading-relaxed text-on-brand">
               Nobody else can answer that. But everything above is already your
               answer, in your own words.
             </p>

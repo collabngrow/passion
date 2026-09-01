@@ -78,7 +78,12 @@ export function ParticipantsPanel() {
           </p>
         </div>
       ) : (
-        <div className="mt-8 overflow-x-auto rounded-lg border border-line">
+        <div
+          tabIndex={0}
+          role="region"
+          aria-label="Participants"
+          className="mt-8 overflow-x-auto rounded-lg border border-line"
+        >
           <table className="w-full min-w-[42rem] border-collapse bg-surface text-left text-sm">
             <thead>
               <tr className="border-b border-line bg-brand-soft">

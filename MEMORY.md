@@ -846,15 +846,100 @@ including `/journey/survey`, `/offline` and `/manifest.webmanifest`.
 
 ---
 
+## Sprint 12 - Accessibility and polish
+
+**Status:** complete
+
+An audit, as the handoff predicted. Most of S73 and brand S24 had been built in as it went, so
+the sprint's real output is a short list of things that were genuinely wrong, and a record of
+what was checked and left alone.
+
+### Confirmed already correct - no change made
+
+`prefers-reduced-motion` in `globals.css`; `Notice` (text prefix per tone, `role="alert"` on
+errors); `Field` (real label, `aria-invalid`, `aria-describedby`); autosave status in a
+`role="status" aria-live="polite"` region; `scope="col"` on both admin tables; radio groups with
+real `<label>`s and `fieldset`/`legend`; heading order on `/journey/survey` and `/offline` (one
+`h1` each, nothing skipped) - two of the five items the handoff flagged turned out to need
+nothing.
+
+The error-copy half of the sprint needed no work either, and was verified rather than assumed:
+`withErrorHandling` answers any non-`ApiError` with a fixed sentence, and the AI routes convert
+`AllModelsFailedError` / `AiNotConfiguredError` / `InvalidAiOutputError` into `aiUnavailable()`
+while logging only `error.name`. The raw Gemini message reaches `console.warn` and stops there.
+
+### The focus ring was invisible on the one rose surface
+
+`:focus-visible` outlines in `--color-brand` (#e0023f). Against `--color-brand-dark` (#c11c45),
+the admin sidebar, that is **1.2:1** - a keyboard user tabbing the navigation had no focus
+indicator at all. Rose surfaces now opt into a white ring via `.on-brand-surface`, which is the
+only rule that could not be written as a Tailwind utility, since it has to reach descendants.
+
+This was not on the handoff's list. It was the most serious finding of the sprint.
+
+### Contrast: white-at-opacity on rose fails AA
+
+Measured, not eyeballed:
+
+| Was | Ratio | Now |
+| --- | --- | --- |
+| `text-on-brand/70` (admin email) | 3.58:1 | `/90` -> 5.05:1 |
+| `text-on-brand/75` (sidebar subtitle) | 3.89:1 | `/90` -> 5.05:1 |
+| `text-on-brand/85` (synthesis closing) | 3.79:1 | full white -> 4.9:1 |
+
+The synthesis one sits on a `brand -> brand-dark` gradient and was measured against the **light**
+end: it passed at 4.6:1 against `brand-dark` alone, which is how a gradient hides a failure.
+`text-on-brand/90` on nav links was already 5.05:1 and was left alone.
+
+### The one modal now traps Tab
+
+`LogoutDialog` moved focus in and restored it, but `aria-modal` does not stop Tab, so the third
+Tab left the dialog for the journey behind it - a page the dialog is asserting has been made
+inert. The trap wraps at both ends and pulls focus back if it escaped some other way.
+
+### Focus follows the screen when the screen is replaced
+
+Two flows swap their entire content while the control that caused the swap unmounts, dropping
+focus to `<body>`: a keyboard user restarts from the top of the document, a screen-reader user
+hears nothing.
+
+- **`JourneyFlow`** moves focus to the new question's `h1` on Continue/Back, with
+  `preventScroll` so it does not fight the scroll-to-top that just ran.
+- **`InviteFlow`** moves focus to the step container - and deliberately **not** on the first
+  settle, since `loading` resolving into the first real step is the page arriving, and taking
+  focus off a page someone just opened is the same rudeness in the other direction. No
+  `aria-live` on that container: focus already announces it, and both would read it twice.
+
+`InviteFlow` was not on the handoff's list, and it matters more than the journey's - it is where
+"this invitation belongs to another account" is announced, or was not.
+
+### Two other findings
+
+- **Skip link.** Six nav items precede the workspace on every admin page. `.skip-link` is
+  off-screen until focused; the target `<main>` takes `tabIndex={-1}` so focus actually lands.
+- **`scrollTo({ behavior: "smooth" })` ignored reduced motion.** The `globals.css` block cannot
+  reach it - an explicit `behavior` argument wins over the CSS property that block overrides -
+  so `JourneyFlow` reads `matchMedia` directly.
+- **Two `overflow-x-auto` tables held nothing focusable**, so they could not be scrolled from a
+  keyboard at all (WCAG 2.1.1). Both are now labelled `role="region"` with `tabIndex={0}`.
+
+### Verification
+
+`npx tsc --noEmit`, `npx eslint`, `npx next build` clean. **120 tests passing**, 25 routes.
+No browser verification, per `CLAUDE.md` - every contrast figure here is computed from the
+tokens in `globals.css`, not observed.
+
+---
+
 ## Handoff — start here
 
-**Done: S0-S11. Next: S12 (accessibility and polish), then S13 (tests/docs), S14 (ship).**
+**Done: S0-S12. Next: S13 (tests/docs), then S14 (ship).**
 
 ### State
 
 | | |
 | --- | --- |
-| Branch | `main`, clean, **three commits ahead of `origin`** |
+| Branch | `main`, clean, **pushed to `origin`** |
 | Build | `npx next build`, `npx eslint`, `npx tsc --noEmit` all clean |
 | Tests | **120 passing** across 8 files (`npx vitest run`) |
 | Routes | 25 |
@@ -864,44 +949,27 @@ including `/journey/survey`, `/offline` and `/manifest.webmanifest`.
 Prefer `npx <tool>` over `npm run <script>`: the sandbox classifier began blocking `npm run`
 once `deploy:rules` was added to `package.json`.
 
-### S12 is an audit, not a rewrite
+### S13 is tests and documentation
 
-The plan's line: semantic HTML, keyboard navigation, visible focus rings, labelled inputs,
-accessible modals, `prefers-reduced-motion`, contrast checks, never colour alone for state
-(S73, brand S24), and human error copy with no raw Firebase/Firestore/Gemini text reaching a
-user (S74, brand S20).
+The S86 matrix, minus anything needing a browser: password hash/verify, AES round-trip, grant
+token signing and expiry, rate-limiter windows, the exercise parser, knowledge retrieval, router
+fallback classification, idempotency keys, admin authorization guards. Most of that already has
+coverage in the eight existing files, so S13 is largely **finding the gaps in what exists**
+rather than starting from nothing. Then `README.md` per S84 and S99, including how to generate
+the encryption key.
 
-**Most of that was built in as it went, so check before changing anything.** Verified present:
+One thing S12 leaves for S13 to consider: **the contrast fixes have no test behind them.** A
+source-scanning check in the style of `client-boundary.test.ts` - fail if `text-on-brand/` drops
+below `/90` - would stop the sprint's main finding being silently undone, since nothing about a
+ratio is visible in a diff. Deliberately not built during S12, which was scoped as an audit.
 
-- `prefers-reduced-motion: reduce` is handled globally in `app/globals.css`, along with a
-  `:focus-visible` outline in the brand colour.
-- `LogoutDialog` has `role="dialog"`, `aria-modal`, Escape-to-cancel, focus moved in on open and
-  restored on close.
-- The journey autosave status sits in a `role="status" aria-live="polite"` region.
-- `Notice` pairs every tone with a text prefix and the right ARIA role; progress bars carry
-  `role="img"` with a percentage label. State is never colour alone.
-- Every API failure leaves the server as a human sentence via `ApiError`/`withErrorHandling`.
-- Radio groups use real `<label>`s; the survey uses `fieldset`/`legend`.
-
-Genuine gaps found while writing this, in rough order of payoff:
-
-1. **`LogoutDialog` has no Tab trap.** Focus enters and is restored, but Tab can still walk out
-   of the dialog into the page behind it. The one modal in the product.
-2. **No skip link.** The admin shell in particular puts a nav list before the workspace on every
-   page, so a keyboard user tabs through it every time.
-3. **Contrast on the admin navigation.** `text-on-brand/70` and `/75` in `AdminShell` are white
-   at 70-75% opacity on `--color-brand-dark` (#c11c45) -- the most likely AA failure in the
-   product. Body text is fine: `--color-ink-soft` (#666) on white is 5.7:1.
-4. **Focus management in `JourneyFlow`.** One question per screen; check that advancing moves
-   focus to the new question rather than leaving it on a button that has moved.
-5. Heading order on the two newest pages, `/journey/survey` and `/offline`.
-
-### Two open items that are not S12
+### Two open items that are not S13
 
 - **`maxDuration: 300` on `/api/journey/synthesis` exceeds Vercel's Hobby 60s function limit.**
   Owner's decision, still open: a plan that permits it, or tighten `thinkingBudget` further.
   Nothing else blocks deployment.
-- **Three commits are unpushed.** CLAUDE.md requires pushing as `collabngrow`.
+- The eight moderate `npm audit` findings (one transitive `uuid` via `firebase-admin`) are still
+  open by choice; see Sprint 1.
 
 ### Conventions this codebase holds to
 

@@ -95,3 +95,38 @@ body {
     scroll-behavior: auto !important;
   }
 }
+
+/*
+ * The focus ring has to be visible against the surface it lands on.
+ * The default rose outline above is 1.2:1 against --color-brand-dark, which on
+ * the admin sidebar is not a focus indicator at all -- a keyboard user tabbing
+ * the navigation would have no idea where they were. Rose surfaces opt into a
+ * white ring instead (WCAG 2.4.11, brand §24).
+ */
+.on-brand-surface :focus-visible {
+  outline-color: var(--color-on-brand);
+}
+
+/*
+ * Skip link (master_prompt §73). Off-screen until focused, so the first Tab on
+ * a page jumps past the navigation instead of walking every item to reach the
+ * workspace.
+ */
+.skip-link {
+  position: absolute;
+  left: -9999px;
+  top: 0;
+  z-index: 100;
+}
+
+.skip-link:focus {
+  left: 0.75rem;
+  top: 0.75rem;
+  padding: 0.625rem 1rem;
+  border-radius: var(--radius-sm);
+  background-color: var(--color-surface);
+  color: var(--color-brand);
+  font-size: 0.875rem;
+  font-weight: 500;
+  box-shadow: 0 2px 8px rgb(0 0 0 / 0.15);
+}

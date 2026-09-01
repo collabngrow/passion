@@ -49,6 +49,13 @@ export function JourneyFlow() {
   const timerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const pendingRef = useRef<{ questionId: string; answer: string } | null>(null);
 
+  // One question per screen means the whole page changes on Continue while the
+  // button that did it stays under the cursor. Focus is moved to the new
+  // question so a screen reader reads it out and a keyboard user is not left
+  // pointing at a button whose meaning has silently changed (§73).
+  const headingRef = useRef<HTMLHeadingElement>(null);
+  const movedRef = useRef(false);
+
   const load = useCallback(
     async (alive: () => boolean) => {
       const result = await apiFetch<JourneyState>("/api/journey/state");
@@ -132,6 +139,16 @@ export function JourneyFlow() {
     [flush],
   );
 
+  // Only after a deliberate move. On first load focus belongs where the browser
+  // put it -- a participant resuming should not have it taken from them.
+  useEffect(() => {
+    if (!movedRef.current) return;
+    movedRef.current = false;
+    // preventScroll: goTo has just scrolled to the top and the heading sits
+    // there; letting focus scroll again would fight it.
+    headingRef.current?.focus({ preventScroll: true });
+  }, [currentId]);
+
   // Save on unmount so a pending edit is not lost when leaving the page.
   useEffect(() => {
     return () => {
@@ -149,10 +166,16 @@ export function JourneyFlow() {
     if (timerRef.current) clearTimeout(timerRef.current);
     await flush();
 
+    movedRef.current = true;
     setCurrentId(question.id);
     setDraft(answersRef.current[question.id] ?? "");
     setSaveState("idle");
-    window.scrollTo({ top: 0, behavior: "smooth" });
+
+    // The globals.css reduced-motion block cannot reach this: an explicit
+    // behavior on scrollTo wins over the CSS scroll-behavior that block
+    // overrides, so the preference has to be read here (§73, brand §15).
+    const reduced = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+    window.scrollTo({ top: 0, behavior: reduced ? "auto" : "smooth" });
   }
 
   if (authLoading || (!state && !loadError)) {
@@ -226,7 +249,11 @@ export function JourneyFlow() {
         </div>
 
         {/* The question is the centre of the screen (§71, brand §29). */}
-        <h1 className="mt-10 text-2xl font-semibold leading-snug tracking-tight text-ink sm:text-3xl">
+        <h1
+          ref={headingRef}
+          tabIndex={-1}
+          className="mt-10 text-2xl font-semibold leading-snug tracking-tight text-ink outline-none sm:text-3xl"
+        >
           {current.title}
         </h1>
 

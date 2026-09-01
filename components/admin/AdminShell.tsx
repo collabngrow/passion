@@ -155,13 +155,21 @@ export function AdminShell({ children }: { children: ReactNode }) {
 
   return (
     <div className="flex min-h-full flex-1 flex-col lg:flex-row">
+      {/*
+        Every admin page puts the six-item navigation before the workspace, so
+        without this a keyboard user tabs the whole nav on every page (§73).
+      */}
+      <a href="#admin-workspace" className="skip-link">
+        Skip to content
+      </a>
+
       {/* Rose navigation, white workspace (brand §8, §17). */}
-      <header className="bg-brand-dark lg:w-64 lg:shrink-0">
+      <header className="on-brand-surface bg-brand-dark lg:w-64 lg:shrink-0">
         <div className="flex items-center gap-3 px-5 py-4 lg:px-6 lg:py-6">
           <Logo size="sm" />
           <div>
             <p className="font-semibold text-on-brand">CollabNGrow</p>
-            <p className="text-xs text-on-brand/75">Passion Analyzer</p>
+            <p className="text-xs text-on-brand/90">Passion Analyzer</p>
           </div>
         </div>
 
@@ -195,7 +203,7 @@ export function AdminShell({ children }: { children: ReactNode }) {
         </nav>
 
         <div className="hidden px-4 pb-6 lg:block">
-          <p className="truncate px-4 text-xs text-on-brand/70" title={email ?? ""}>
+          <p className="truncate px-4 text-xs text-on-brand/90" title={email ?? ""}>
             {email}
           </p>
           <button
@@ -208,7 +216,11 @@ export function AdminShell({ children }: { children: ReactNode }) {
         </div>
       </header>
 
-      <main className="flex-1 bg-canvas px-5 py-8 sm:px-8 lg:px-10 lg:py-10">
+      <main
+        id="admin-workspace"
+        tabIndex={-1}
+        className="flex-1 bg-canvas px-5 py-8 outline-none sm:px-8 lg:px-10 lg:py-10"
+      >
         {children}
       </main>
     </div>
