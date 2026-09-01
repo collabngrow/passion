@@ -1033,36 +1033,132 @@ generation that gets killed halfway.
 
 ---
 
+## Sprint 14 - Ship
+
+**Status:** complete
+
+The sprint's whole job was to check claims that were already written down, so almost all of
+it is verification rather than change. Two things did not survive the check, and both were in
+`README.md` -- which is the one file whoever deploys this reads instead of the code.
+
+### The §88 security acceptance test, walked line by line
+
+Each line was answered against the built output or the code that decides it, not against the
+plan that promised it.
+
+| §88 question | Answer | How it was established |
+| --- | --- | --- |
+| Browser sees Gemini API keys? | NO | The three live key values grepped literally across `.next/static` and `.next/server/app`: 0 files |
+| Browser sees encryption key? | NO | Same grep for the live `INVITATION_PASSWORD_ENCRYPTION_KEY` and `INVITE_GRANT_SECRET` values: 0 files |
+| Participant reads another's answers? | NO | `getAllAnswers(participant.uid)`, where the uid comes from `requireParticipant` -> a verified ID token. No route takes an identity from a request body |
+| Participant reads encrypted passwords? | NO | `encryptedPassword` appears in 0 client chunks; the invitation view drops both credentials before anything is serialised |
+| Participant reveals invitation password? | NO | `requireFreshAdmin` plus a rate limit; decryption happens server-side inside the route |
+| Non-admin calls admin endpoints? | NO | All ten `app/api/admin/**/route.ts` enumerated: eight `requireAdmin`, and reveal/rotate the stricter `requireFreshAdmin` |
+| Participant replaces a bound identity? | NO | `bindInvitation` returns `mismatch` and writes nothing when `boundUid` is another uid, decided inside the transaction |
+| Disabled invitation accesses data? | NO | `status !== "active"` refused in three separate places: bind, `requireJourneyAccess`, and password verification |
+| Old password works after rotation? | NO | `rotateInvitationPassword` replaces `passwordHash` and `encryptedPassword` in one transactional update |
+
+**The literal-value grep is the one worth keeping.** A grep for the *names* finds three client
+chunks, and all three are innocent: the admin settings panel renders
+`INVITATION_PASSWORD_ENCRYPTION_KEY` as the label of a configured/not-configured indicator, and
+`passwordHash` is a field name inside the Firebase Auth SDK's own account parsing. Searching for
+the names alone would have produced three false alarms; searching for the secrets themselves
+answers the question §88 actually asks.
+
+### §38L knowledge-base quality check, confirmed
+
+56 items across the seven §38K categories -- concepts 9, values 8, distinctions 8, tensions 8,
+interpretation guidance 7, cautions 9, principles 8 -- 28 themes, 7,505 words, rebuilt from
+`content/knowledge-base/` by `scripts/build-kb.mjs`. Versioned (`knowledgeBaseVersion`, surfaced
+in the admin settings panel). Retrieval reaches both engines: `selectKnowledge` for a
+per-question reflection, `fullKnowledgeBase` for the synthesis, which takes the whole framework
+because narrowing by theme would drop exactly the cross-section material a synthesis exists to
+find.
+
+Source identity hidden: a grep across `app/`, `components/` and `lib/ai/` for framework and
+provenance language returns only server-side prompt text, type comments, and the admin panel's
+version row. Nothing participant-facing. The prompt's `YOU MUST NOT` block forbids naming any
+source, author, book, philosopher or school, and forbids the framework's own vocabulary --
+every concept has to arrive in ordinary language.
+
+### What the check actually found
+
+- **The environment variable table conflated "secret" with "required".** `GEMINI_API_KEY_2`
+  and `_3` were marked **yes** in a column headed *Secret* while their purpose column said
+  *Optional*, under an intro sentence reading "Every one of these must be set in Vercel". Read
+  quickly -- which is how a deployment checklist is read -- that says two optional keys are
+  mandatory. The table now has a separate **Required** column, and `ADMIN_EMAIL` and
+  `NEXT_PUBLIC_APP_URL` say what happens when they are absent rather than just "no", because
+  both have defaults that are wrong in production: the administrator would be inherited from a
+  literal in `lib/env.ts`, and invitation links would be built from whichever deployment URL
+  served the request.
+- **`NEXT_PUBLIC_FIREBASE_MEASUREMENT_ID` was listed as though the app used it.** Nothing reads
+  it -- there is no Analytics here; it is in `.env.example` only because the Firebase console
+  emits it with the rest of the config. Now stated as such instead of sitting in a table of
+  things to set.
+- **The one open item pointed at the wrong file.** It told the deployer to reduce the thinking
+  budget in `lib/ai/config.ts`; `config.ts` holds model routing, and `thinkingBudget` lives in
+  `lib/ai/generate.ts` -- 512 for a reflection, 2048 for the synthesis. Both numbers are now in
+  the sentence, so the fix is visible without opening anything.
+
+### Checked and left alone
+
+- `FIREBASE_PRIVATE_KEY.json` sits in the working tree, and `.gitignore` names it explicitly at
+  line 22. The generic `serviceAccount*.json` and `*-firebase-adminsdk-*.json` patterns do
+  **not** match that filename, so the explicit line is what is protecting it. `git log --all`
+  confirms it never entered history. The README already says to delete the download once the
+  values are in `.env`.
+- No route reads `uid`, `email`, an admin flag or a participant id from a request body (§90):
+  grepped, zero hits outside tests.
+- `/api/invite/[inviteId]/verify-password` is unauthenticated by necessity -- it is the
+  password step -- and is rate-limited on invitation *and* caller together, spends real scrypt
+  work on a missing invitation to close the timing oracle, and returns one indistinguishable
+  failure for missing, disabled and wrong (§31, §53, §54).
+
+### Verification
+
+`npx tsc --noEmit`, `npx eslint`, `npx next build` clean. **197 tests passing** across 13 files.
+34 entries in the build's route listing: 12 pages, 20 API routes, plus `/manifest.webmanifest`
+and `/_not-found`. (Earlier entries in this file said "25 routes", counting a pre-S13 build's
+listing; the number here is what `npx next build` prints today.)
+
+---
+
 ## Handoff — start here
 
-**Done: S0-S13. Next: S14 (ship).**
+**Done: S0-S14. The build plan is complete.**
 
 ### State
 
 | | |
 | --- | --- |
-| Branch | `main`, clean, pushed to `origin` |
+| Branch | `main`, pushed to `origin` (`collabngrow/passion`) |
 | Build | `npx next build`, `npx eslint`, `npx tsc --noEmit` all clean |
 | Tests | **197 passing** across 13 files (`npx vitest run`) |
-| Routes | 25 |
+| Routes | 34 listed by the build |
 | Firestore | deny-all rules **live** |
-| Docs | `README.md` complete (S84, S99) |
-| Live-verified | Firestore round-trip, all three Gemini keys, one real generation end to end |
+| Docs | `README.md` complete and corrected against the code (§84, §99) |
+| §88 | walked line by line; every answer NO |
+| §38L | confirmed |
 
 Prefer `npx <tool>` over `npm run <script>`: the sandbox classifier began blocking `npm run`
 once `deploy:rules` was added to `package.json`.
 
-### S14 is the ship checklist
+### What is left, and it is the owner's, not the code's
 
-Walk S88 line by line, confirm the S38L knowledge-base checklist, and hand over the Vercel
-environment variable list -- which `README.md` now contains as a table, so S14 is confirming
-it rather than assembling it.
-
-**One thing genuinely blocks production, and it is the owner's call:**
-`maxDuration = 300` on `/api/journey/synthesis` exceeds Vercel's Hobby 60-second function
-limit, so a long synthesis is killed mid-generation there. Either a plan that permits 300s,
-or tighten `thinkingBudget` in `lib/ai/config.ts` until generation fits. `/api/journey/reflect`
-is at 120s with the same consideration. Documented in `README.md` under Deployment.
+1. **The Vercel function limit.** `app/api/journey/synthesis/route.ts` declares
+   `maxDuration = 300`; Hobby caps functions at 60 seconds, so a long synthesis is killed
+   mid-generation there. Either a plan that permits 300s, or lower `thinkingBudget` in
+   `lib/ai/generate.ts` until generation fits. `/api/journey/reflect` is at 120s with the same
+   consideration. This is a deployment-plan decision, so it is deliberately not resolved in
+   code.
+2. **The Vercel environment variables**, from the corrected table in `README.md`. Required:
+   the six `NEXT_PUBLIC_FIREBASE_*` values, `FIREBASE_CLIENT_EMAIL`, `FIREBASE_PRIVATE_KEY`,
+   `INVITATION_PASSWORD_ENCRYPTION_KEY`, `INVITE_GRANT_SECRET`, `GEMINI_API_KEY_1`. Set
+   `ADMIN_EMAIL` and `NEXT_PUBLIC_APP_URL` explicitly even though both have fallbacks.
+3. **The deployed domain in Firebase → Authentication → Authorized domains**, or Google
+   sign-in fails there with an unhelpful error.
+4. **`npm run deploy:rules` after any rules change.** Vercel does not deploy Firestore rules.
 
 The eight moderate `npm audit` findings (one transitive `uuid` via `firebase-admin`) remain
 open by choice; see Sprint 1.
@@ -1076,7 +1172,7 @@ hand, by the owner.
 
 ### Conventions this codebase holds to
 
-- Comments explain *why*, and name the failure a decision prevents. Section numbers (S38I, S92)
+- Comments explain *why*, and name the failure a decision prevents. Section numbers (§38I, §92)
   refer to `master_prompt.md`; `brand_guidelines.md` numbers separately.
 - Anything server-side starts `import "server-only"`. The browser gets Firebase **auth only** --
   `lib/firebase/client-boundary.test.ts` fails if that ever changes, because the deployed

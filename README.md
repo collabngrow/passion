@@ -186,28 +186,31 @@ See [Deployment](#deployment).
 
 ## Environment variables
 
-Every one of these must be set in Vercel as well as locally. `lib/env.ts` reads
-them lazily and fails with setup guidance naming the missing variable, rather
-than with an opaque runtime error.
+Everything marked required must be set in Vercel as well as locally. `lib/env.ts`
+reads them lazily and fails with setup guidance naming the missing variable,
+rather than with an opaque runtime error.
 
-| Variable | Secret | Purpose |
-| --- | --- | --- |
-| `NEXT_PUBLIC_FIREBASE_API_KEY` | no | Web SDK configuration. Public by design |
-| `NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN` | no | |
-| `NEXT_PUBLIC_FIREBASE_PROJECT_ID` | no | |
-| `NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET` | no | |
-| `NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID` | no | |
-| `NEXT_PUBLIC_FIREBASE_APP_ID` | no | |
-| `NEXT_PUBLIC_FIREBASE_MEASUREMENT_ID` | no | |
-| `FIREBASE_CLIENT_EMAIL` | **yes** | Service account identity |
-| `FIREBASE_PRIVATE_KEY` | **yes** | Service account key, quoted, `\n` escapes intact |
-| `INVITATION_PASSWORD_ENCRYPTION_KEY` | **yes** | AES-256-GCM key for password reveal |
-| `INVITE_GRANT_SECRET` | **yes** | Signs the invitation grant cookie |
-| `ADMIN_EMAIL` | no | The single authorised administrator |
-| `GEMINI_API_KEY_1` | **yes** | Required |
-| `GEMINI_API_KEY_2` | **yes** | Optional, extends quota fallback |
-| `GEMINI_API_KEY_3` | **yes** | Optional |
-| `NEXT_PUBLIC_APP_URL` | no | Absolute base URL, used to build invitation links |
+| Variable | Required | Secret | Purpose |
+| --- | --- | --- | --- |
+| `NEXT_PUBLIC_FIREBASE_API_KEY` | yes | no | Web SDK configuration. Public by design |
+| `NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN` | yes | no | |
+| `NEXT_PUBLIC_FIREBASE_PROJECT_ID` | yes | no | Also the project id the Admin SDK initialises with |
+| `NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET` | yes | no | |
+| `NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID` | yes | no | |
+| `NEXT_PUBLIC_FIREBASE_APP_ID` | yes | no | |
+| `FIREBASE_CLIENT_EMAIL` | yes | **yes** | Service account identity |
+| `FIREBASE_PRIVATE_KEY` | yes | **yes** | Service account key, quoted, `\n` escapes intact |
+| `INVITATION_PASSWORD_ENCRYPTION_KEY` | yes | **yes** | AES-256-GCM key for password reveal |
+| `INVITE_GRANT_SECRET` | yes | **yes** | Signs the invitation grant cookie |
+| `GEMINI_API_KEY_1` | yes | **yes** | At least one key is required |
+| `GEMINI_API_KEY_2` | no | **yes** | Extends the quota fallback |
+| `GEMINI_API_KEY_3` | no | **yes** | Extends the quota fallback |
+| `ADMIN_EMAIL` | no | no | Defaults to `collabwinwin@gmail.com`. Set it explicitly so the administrator is stated, not inherited |
+| `NEXT_PUBLIC_APP_URL` | no | no | Falls back to `VERCEL_URL`, then `localhost`. Set it, or invitation links are built from whichever deployment URL served the request |
+
+`NEXT_PUBLIC_FIREBASE_MEASUREMENT_ID` appears in `.env.example` because the
+Firebase console emits it. Nothing reads it — there is no Analytics in this
+application — so it does not need to be set in Vercel.
 
 The `NEXT_PUBLIC_FIREBASE_*` values being public is not an oversight — a Firebase
 web API key identifies a project, it does not authorise anything. Anyone holding
@@ -268,7 +271,8 @@ Vercel, from the repository.
 `app/api/journey/synthesis/route.ts` declares `maxDuration = 300`. **Vercel's
 Hobby plan caps functions at 60 seconds**, so on Hobby a long synthesis is killed
 mid-generation. Either deploy on a plan that permits 300s, or reduce the model's
-thinking budget in `lib/ai/config.ts` until generation fits inside the cap. The
+thinking budget in `lib/ai/generate.ts` (`thinkingBudget`: 512 for a
+reflection, 2048 for the synthesis) until generation fits inside the cap. The
 reflect route (`maxDuration = 120`) has the same consideration.
 
 ---
