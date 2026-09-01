@@ -4,6 +4,7 @@ import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 
 import { useAuthState } from "@/components/auth/useAuthState";
+import { BreakCard } from "@/components/exercise/BreakCard";
 import { LogoutDialog } from "@/components/exercise/LogoutDialog";
 import { QuestionBlocks } from "@/components/exercise/QuestionBlocks";
 import { SectionReflection } from "@/components/exercise/SectionReflection";
@@ -60,6 +61,10 @@ export function JourneyFlow() {
   const [saveState, setSaveState] = useState<SaveState>("idle");
   const [loggingOut, setLoggingOut] = useState(false);
   const [reflection, setReflection] = useState<ReflectionState>({ status: "idle" });
+  // Null when working. Holds the figures the break card shows, captured at the
+  // moment of pausing: answersRef is a ref, so reading it during render would
+  // both break the rules of hooks and go stale the next time it changed.
+  const [breakState, setBreakState] = useState<{ answeredCount: number } | null>(null);
 
   // Answers held locally so moving between questions is instant and does not
   // depend on a round trip.
@@ -229,6 +234,26 @@ export function JourneyFlow() {
     );
   }
 
+  /**
+   * Pauses without signing out (§18, §19).
+   *
+   * Flushes first. The autosave is debounced, so the last few seconds of typing
+   * may still be pending, and the whole promise the break makes is that nothing
+   * was lost by stepping away.
+   */
+  async function takeABreak() {
+    if (timerRef.current) clearTimeout(timerRef.current);
+    await flush();
+
+    // Counted from the local answers rather than the server's list, so a break
+    // taken seconds after typing reflects what was just flushed.
+    const answeredCount = questions.filter(
+      (question) => (answersRef.current[question.id] ?? "").trim().length > 0,
+    ).length;
+
+    setBreakState({ answeredCount });
+  }
+
   if (authLoading || (!state && !loadError)) {
     return (
       <main className="flex flex-1 items-center justify-center p-8">
@@ -284,16 +309,44 @@ export function JourneyFlow() {
             <Logo size="sm" />
             <span className="text-sm font-medium text-ink">Your journey</span>
           </div>
-          <button
-            type="button"
-            onClick={() => setLoggingOut(true)}
-            className="rounded-md px-3 py-2 text-sm text-ink-soft hover:bg-brand-soft hover:text-ink"
-          >
-            Log out
-          </button>
+          <div className="flex items-center gap-1">
+            {/*
+              Offered before Log out, and worded as stopping rather than
+              leaving: taking a break is what most people actually mean, and
+              logging out costs them the invitation password to undo (§19, §20).
+            */}
+            {!breakState ? (
+              <button
+                type="button"
+                onClick={() => void takeABreak()}
+                className="rounded-md px-3 py-2 text-sm text-ink-soft hover:bg-brand-soft hover:text-ink"
+              >
+                Take a break
+              </button>
+            ) : null}
+            <button
+              type="button"
+              onClick={() => setLoggingOut(true)}
+              className="rounded-md px-3 py-2 text-sm text-ink-soft hover:bg-brand-soft hover:text-ink"
+            >
+              Log out
+            </button>
+          </div>
         </div>
       </header>
 
+      {breakState ? (
+        <BreakCard
+          name={state.participant.name}
+          partNumber={section?.order ?? 1}
+          totalParts={state.exercise.sections.length}
+          partTitle={section?.title ?? ""}
+          answeredCount={breakState.answeredCount}
+          totalQuestions={total}
+          onContinue={() => setBreakState(null)}
+          onLogout={() => setLoggingOut(true)}
+        />
+      ) : (
       <main className="mx-auto w-full max-w-3xl flex-1 px-6 py-10 sm:py-14">
         {/*
           The exercise is fourteen parts, and which one you are in changes what
@@ -450,6 +503,7 @@ export function JourneyFlow() {
           )}
         </div>
       </main>
+      )}
 
       <LogoutDialog open={loggingOut} onCancel={() => setLoggingOut(false)} />
     </>

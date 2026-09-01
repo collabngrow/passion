@@ -1269,11 +1269,31 @@ Derived from the count and `completedAt` already on the row rather than stored a
 a stored status is a third copy of the same fact and can disagree with the count printed beside
 it. A word rather than a colour (§73, brand §24); the bar beside it stays decorative.
 
+### Taking a break, which is not logging out
+
+`Take a break` sits beside `Log out` in the journey header and replaces the exercise, on the same
+page, with `BreakCard`: where you stopped, how much is answered, Continue, and a quiet Log out.
+
+The distinction is the point. S18 promises that closing the tab does not end a session, and S19
+makes logging out the one thing that does -- it clears the grant cookie, so returning needs the
+invitation password and Google again, and S20 provides no password recovery. A break that quietly
+signed someone out would punish them for stepping away. So the session is untouched, and Continue
+puts them back on the question they left.
+
+Log out is on the card as well, because stopping for the night and sitting at someone else's
+computer arrive at the same moment, and the second one has to be reachable without hunting.
+
+Two details worth keeping: the pending autosave is flushed before pausing, since the debounce
+means the last seconds of typing may still be in flight and not losing them is the whole promise;
+and the answered count is computed in the handler rather than during render, because `answersRef`
+is a ref -- reading it in the body breaks the rules of hooks and goes stale on the next change.
+The lint rule caught that, correctly, on the first attempt.
+
 ### Verification
 
 `npx tsc --noEmit`, `npx eslint`, `npx next build` clean. **203 tests passing.**
 
-**Not verified:** the reflection has still never been generated through a browser. The trigger,
+**Not verified:** neither the reflection nor the break card has been through a browser. The trigger,
 the loading state and the failure path are unexercised -- CLAUDE.md permits build checks only.
 This is the same class of gap that hid the missing wire, so it is worth saying plainly rather
 than leaving in a footnote.
