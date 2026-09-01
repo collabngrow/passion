@@ -572,6 +572,31 @@ run — that needs the Firebase service account, since every AI route sits behin
 
 ---
 
+## Setup verification — live infrastructure confirmed
+
+`npm run verify:setup` (`scripts/verify-setup.mjs`) exercises the real paths rather than checking
+that variables merely look present: it initialises the Admin SDK with the real credentials,
+performs a real Firestore write/read/delete, and calls the Gemini models endpoint with each key.
+
+**First live run: 8/8 passed.** Firestore round-trip OK against `passion-f0aec`; all three Gemini
+keys accepted. Up to this point every sprint had been build-verified only.
+
+### Two configuration faults it caught
+
+- **`FIREBASE_PRIVATE_KEY` held a filesystem path** to the service-account JSON rather than the
+  key contents. It would have worked locally and failed on Vercel, which has no such file. The
+  `private_key` value is now inlined with `
+` escapes — the same form Vercel needs. The JSON
+  file stays on disk, gitignored, as the source to regenerate from.
+- **`INVITE_GRANT_SECRET` was the 44-character key pasted twice.** Node's base64 decoder is
+  lenient: it stopped at the `=` in the middle and silently used the first 32 bytes. It would
+  have "worked" while being wrong. The verifier now rejects non-canonical base64 for exactly this
+  reason, rather than only checking decoded length.
+
+`FIREBASE_PRIVATE_KEY.json` is gitignored (added by the project owner) and never entered history.
+
+---
+
 ## Environment variables
 
 Present in `.env`: seven `NEXT_PUBLIC_FIREBASE_*`, plus `GEMINI_API_KEY_1`, `GEMINI_API_KEY_2`,
