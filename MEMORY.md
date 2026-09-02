@@ -342,8 +342,9 @@ own cookie grants nothing.
 
 `app/invite/[inviteId]/page.tsx` does **no** server-side existence check; rendering the password
 step for every id is what stops the route enumerating invitations (§54). `InviteFlow` renders
-whichever step the server reports. A mismatch shows the §17 wording without ever naming the
-bound account, and `TroubleSigningIn` appears on every failure surface (§17, §20, §63).
+whichever step the server reports. A mismatch showed the §17 wording without ever naming the
+bound account — **superseded by S16**, which names it to a grant holder and adds a way to switch
+account; `TroubleSigningIn` still appears on every failure surface (§17, §20, §63).
 
 ### Onboarding carries feedback survey Q2
 
@@ -1438,9 +1439,106 @@ than leaving in a footnote.
 
 ---
 
+## Sprint 16 - The way back in, and never guessing the Google account
+
+**Status:** complete
+
+Three problems reported from real use, all in the entry flow. Two of them only exist for someone
+who is not us: an elder participant on a shared phone, and anyone who installed the PWA and then
+closed it.
+
+### The landing page was a dead end
+
+`manifest.ts` sets `start_url: "/"` and its comment claimed "the root page is the one that can
+decide where they belong". It could not. `app/page.tsx` was a static server component with no auth
+check, no sign-in and no link forward, and S0 wrote that deliberately (§100, invitation-only). By
+S10 the PWA opened there, and by then the invitation email was months old. Worse, `ExercisesList`
+and `JourneyFlow` both redirect **to** `/` on a 401 -- so an expired session landed on a page with
+nowhere to go. The comment in `manifest.ts` and the behaviour of `page.tsx` had disagreed since
+S10 and nothing could catch it, because they are in different files and no test opens a browser.
+
+Same category as the S15 gap: two sprints, each internally consistent, no owner for the seam.
+
+`GET /api/session/resume` + `lib/auth/resume.ts` now answer "who are you and where were you", from
+the verified uid alone. `components/home/ResumeSignIn.tsx` renders below the invitation card: if a
+session survived (§18 says it will) it resolves silently and forwards, otherwise it offers Google.
+
+**It forwards a participant to `/invite/<id>`, not `/exercises`.** That page's `/state` endpoint
+already decides between re-entering the password (the 30-day grant cookie lapsed), completing a
+profile, and going through. Deciding it a second time here would be a second gate to keep in step
+with the first. The administrator goes to `/admin` -- checked before the invitation lookup, since
+the administrator may hold an invitation of their own.
+
+No enumeration surface: it only ever names the invitation bound to the caller's own uid.
+
+### Nobody was told which Google account was about to be used
+
+`prompt: "select_account"` was already set and was never the problem -- the popup was fine. The
+screens around it were not:
+
+- **The mismatch screen had no button at all.** Someone signed into the wrong Google account in
+  that browser was told "this belongs to another account" and given a support email. There was no
+  control to change it. That is the whole report, in one screen.
+- The Google step never said who was already signed in, so on a family phone the choice was made
+  before the participant knew a choice existed.
+- Admin **denied** offered "Sign in with a different account", which called `signOutUser()` and
+  dropped them back on the sign-in screen needing a second tap and no picker.
+
+`switchGoogleAccount()` (`lib/auth/client.ts`) ends the Firebase session *before* reopening Google,
+so the screen they return to reflects the account they actually picked -- including when they
+cancel, which is why signing out first is the right order rather than a wasted step. It backs a
+"Use a different Google account" control on the mismatch screen, the Google step (only when a
+session is already in play), and admin denied. Both invite paths run through one `enter(signIn)`
+so "continue" and "switch" cannot drift apart.
+
+The Google step now names the account it is about to use, and admin denied names the address it
+rejected -- the rejected one, never the authorised one, so §89 still holds and no admin address
+reaches the bundle.
+
+### §17 is relaxed for a grant holder, and only there
+
+§17 said the bound account must never be named. It is now named on the Google and mismatch steps,
+by `/api/invite/[inviteId]/state`, **past the grant check**. Reaching either step requires a valid
+grant for that invitation, which means its 116-bit password was typed. Withholding the address
+from the one person who proved they hold the invitation was protecting nothing and left them with
+nothing to act on.
+
+The line is exact and worth keeping: the `!grant -> "password"` branch still returns before any
+Firestore read, so §54's anti-enumeration guarantee is untouched, and `/bind` still refuses to
+name the account it rejected. `verifyGrant` rejects a grant issued for a different invite, so a
+grant is not a key to somebody else's `boundEmail`.
+
+`bind/route.ts` did not change. On `account_mismatch` the client calls `refresh()` and lets
+`/state` be the single source for that address, rather than a second copy in the error path.
+
+### Files
+
+New: `lib/auth/resume.ts`, `lib/auth/resume.test.ts`, `app/api/session/resume/route.ts`,
+`components/home/ResumeSignIn.tsx`. Changed: `app/page.tsx`, `lib/auth/client.ts`,
+`app/api/invite/[inviteId]/state/route.ts`, `components/invitation/InviteFlow.tsx`,
+`components/admin/AdminShell.tsx` (which also resets its gate to "checking" on re-check, or
+switching account in place showed the previous verdict against the new address).
+
+Not touched, deliberately: `manifest.ts` and `public/sw.js` -- `start_url: "/"` became correct
+rather than aspirational, and navigations were already network-only.
+
+### Known, not fixed
+
+`AdminShell`'s sign-out calls only `signOutUser()` and never `POST /api/auth/logout`, so an
+administrator who is also a participant keeps their `pa_invite_grant` cookie after leaving the
+dashboard -- unlike the participant `LogoutDialog`, which clears both. Pre-existing; noted rather
+than folded into an unrelated change.
+
+`lib/invitations/binding.test.ts` > "stops the old password working the instant the new one
+starts" times out at the 5s default under full-suite load on a slow machine -- three scrypt
+hashes contending. It passes in ~500ms in isolation. Nothing to do with this sprint; if it
+becomes a nuisance, raise `testTimeout` rather than weakening the test.
+
+---
+
 ## Handoff — start here
 
-**Done: S0-S15.** The build plan is complete; S15 closed a gap found in live testing.
+**Done: S0-S16.** The build plan is complete; S15 and S16 closed gaps found in live testing.
 
 ### State
 
@@ -1448,8 +1546,8 @@ than leaving in a footnote.
 | --- | --- |
 | Branch | `main`, pushed to `origin` (`collabngrow/passion`) |
 | Build | `npx next build`, `npx eslint`, `npx tsc --noEmit` all clean |
-| Tests | **203 passing** across 14 files (`npx vitest run`) |
-| Routes | 34 listed by the build |
+| Tests | **211 passing** across 15 files (`npx vitest run`) |
+| Routes | 35 listed by the build |
 | Firestore | deny-all rules **live** |
 | Docs | `README.md` complete and corrected against the code (§84, §99) |
 | §88 | walked line by line; every answer NO |

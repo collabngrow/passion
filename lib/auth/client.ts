@@ -77,6 +77,21 @@ export async function signInWithGoogle(): Promise<User> {
 }
 
 /**
+ * Signs out first, then reopens Google so the person genuinely re-chooses.
+ *
+ * §17: someone on a shared or family device can be signed into the wrong Google
+ * account without realising it, and being told "this belongs to another
+ * account" with no control to change it is a dead end. Ending the Firebase
+ * session first means the screen they return to reflects the account they
+ * actually picked, including when they cancel the popup.
+ */
+export async function switchGoogleAccount(): Promise<User> {
+  const auth = await firebaseAuth();
+  await signOut(auth);
+  return signInWithGoogle();
+}
+
+/**
  * Reauthenticates the current user against Google (§26).
  *
  * Refreshes `auth_time` in the ID token, which the server checks before

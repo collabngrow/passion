@@ -1,13 +1,18 @@
+import { ResumeSignIn } from "@/components/home/ResumeSignIn";
 import { Logo } from "@/components/ui/Logo";
 import { SUPPORT_EMAIL, supportEmailHref } from "@/lib/support";
 
 /**
  * Public landing surface.
  *
- * The experience is invitation-only (§100), so this page deliberately offers no
- * sign-in, no sign-up and no way in. It exists to reassure someone who arrives
- * without a link that they are in the right place, and to point them at a human
- * (§63). The administrator reaches /admin directly.
+ * The experience is invitation-only (§100), so there is still no sign-up and no
+ * way to obtain an invitation here. It reassures someone who arrives without a
+ * link that they are in the right place, and points them at a human (§63).
+ *
+ * It is also where the installed PWA opens (manifest start_url), so it must be
+ * able to decide where an existing participant belongs -- <ResumeSignIn/> is
+ * the only interactive part of the page, and does that for a returning visitor
+ * without ever admitting a stranger.
  */
 export default function HomePage() {
   return (
@@ -46,6 +51,8 @@ export default function HomePage() {
             .
           </p>
         </div>
+
+        <ResumeSignIn />
       </div>
     </main>
   );

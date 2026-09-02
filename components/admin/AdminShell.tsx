@@ -7,10 +7,15 @@ import type { ReactNode } from "react";
 
 import { GoogleButton } from "@/components/auth/GoogleButton";
 import { useAuthState } from "@/components/auth/useAuthState";
-import { Button } from "@/components/ui/Button";
 import { Logo } from "@/components/ui/Logo";
 import { Notice } from "@/components/ui/Notice";
-import { SignInCancelled, apiFetch, signInWithGoogle, signOutUser } from "@/lib/auth/client";
+import {
+  SignInCancelled,
+  apiFetch,
+  signInWithGoogle,
+  signOutUser,
+  switchGoogleAccount,
+} from "@/lib/auth/client";
 
 /**
  * Administrator dashboard shell (master_prompt.md §22, §66; brand §8, §17).
@@ -59,8 +64,14 @@ export function AdminShell({ children }: { children: ReactNode }) {
   const [serverGate, setServerGate] = useState<ServerGate>("checking");
   const [email, setEmail] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
+  const [busy, setBusy] = useState(false);
 
   const check = useCallback(async (alive: () => boolean) => {
+    // Reset first: after switching accounts in place, holding the previous
+    // verdict would show "access denied" against the new address until the
+    // answer came back.
+    setServerGate("checking");
+
     const result = await apiFetch<{ email: string }>("/api/admin/me");
     if (!alive()) return;
 
@@ -93,14 +104,22 @@ export function AdminShell({ children }: { children: ReactNode }) {
   // render for something already available.
   const gate: Gate = loading ? "checking" : !user ? "signed-out" : serverGate;
 
-  async function handleSignIn() {
+  /**
+   * `switchGoogleAccount` on the denied screen ends the session before
+   * reopening Google, so one tap changes account -- signing out alone left the
+   * administrator back on the sign-in screen needing a second tap.
+   */
+  async function handleSignIn(signIn: () => Promise<unknown>) {
     setError(null);
+    setBusy(true);
     try {
-      await signInWithGoogle();
+      await signIn();
     } catch (caught) {
       if (!(caught instanceof SignInCancelled)) {
         setError("We couldn't complete sign-in. Please try again.");
       }
+    } finally {
+      setBusy(false);
     }
   }
 
@@ -137,23 +156,47 @@ export function AdminShell({ children }: { children: ReactNode }) {
                 </Notice>
               ) : null}
               <div className="mt-8">
-                <GoogleButton onClick={handleSignIn} />
+                <GoogleButton
+                  onClick={() => void handleSignIn(signInWithGoogle)}
+                  pending={busy}
+                />
               </div>
             </>
           ) : null}
 
           {gate === "denied" ? (
             <>
+              {/*
+                Naming the rejected address, not the authorised one: the admin
+                address still never reaches the client bundle (§89), while
+                whoever is looking at this can see which of their accounts the
+                browser actually used.
+              */}
               <p className="mt-3 leading-relaxed text-ink-soft">
-                This account isn&apos;t authorised to manage the Passion Analyzer.
+                {user?.email ? (
+                  <>
+                    <strong className="font-semibold text-ink">{user.email}</strong>{" "}
+                    isn&apos;t authorised to manage the Passion Analyzer.
+                  </>
+                ) : (
+                  <>This account isn&apos;t authorised to manage the Passion Analyzer.</>
+                )}
               </p>
-              <Button
-                variant="secondary"
-                className="mt-8"
-                onClick={() => void signOutUser()}
-              >
-                Sign in with a different account
-              </Button>
+
+              {error ? (
+                <Notice tone="error" className="mt-6 text-left">
+                  {error}
+                </Notice>
+              ) : null}
+
+              <div className="mt-8">
+                <GoogleButton
+                  onClick={() => void handleSignIn(switchGoogleAccount)}
+                  pending={busy}
+                >
+                  Use a different Google account
+                </GoogleButton>
+              </div>
             </>
           ) : null}
 

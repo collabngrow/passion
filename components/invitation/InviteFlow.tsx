@@ -2,6 +2,7 @@
 
 import { useCallback, useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
+import type { User } from "firebase/auth";
 
 import { GoogleButton } from "@/components/auth/GoogleButton";
 import { TroubleSigningIn } from "@/components/auth/TroubleSigningIn";
@@ -11,7 +12,12 @@ import { Button } from "@/components/ui/Button";
 import { Field } from "@/components/ui/Field";
 import { Logo } from "@/components/ui/Logo";
 import { Notice } from "@/components/ui/Notice";
-import { SignInCancelled, apiFetch, signInWithGoogle } from "@/lib/auth/client";
+import {
+  SignInCancelled,
+  apiFetch,
+  signInWithGoogle,
+  switchGoogleAccount,
+} from "@/lib/auth/client";
 
 /**
  * The invitation entry flow (master_prompt.md §14, §16, §17).
@@ -42,6 +48,15 @@ export function InviteFlow({ inviteId }: { inviteId: string }) {
   const [busy, setBusy] = useState(false);
 
   /**
+   * The Google account this invitation belongs to, once the password has been
+   * passed (§17, relaxed for a grant holder -- see the /state route).
+   */
+  const [boundEmail, setBoundEmail] = useState<string | null>(null);
+
+  /** Whether a Firebase session is already in play on the Google step. */
+  const [authenticated, setAuthenticated] = useState(false);
+
+  /**
    * Asks the server where this visitor stands.
    *
    * `alive` guards against resolving after unmount, and against an earlier
@@ -49,9 +64,11 @@ export function InviteFlow({ inviteId }: { inviteId: string }) {
    */
   const refresh = useCallback(
     async (alive: () => boolean = () => true) => {
-      const result = await apiFetch<{ step: ServerStep }>(
-        `/api/invite/${inviteId}/state`,
-      );
+      const result = await apiFetch<{
+        step: ServerStep;
+        boundEmail?: string;
+        authenticated?: boolean;
+      }>(`/api/invite/${inviteId}/state`);
       if (!alive()) return;
 
       if (!result.ok) {
@@ -64,6 +81,8 @@ export function InviteFlow({ inviteId }: { inviteId: string }) {
         return;
       }
 
+      setBoundEmail(result.data.boundEmail ?? null);
+      setAuthenticated(result.data.authenticated === true);
       setStep(result.data.step);
     },
     [inviteId, router],
@@ -126,12 +145,19 @@ export function InviteFlow({ inviteId }: { inviteId: string }) {
     await refresh();
   }
 
-  async function handleGoogle() {
+  /**
+   * Sign in, claim the invitation, move on.
+   *
+   * Parameterised by how to reach Google so that "Continue" and "use a
+   * different account" are the same path -- the second only differs in ending
+   * the current Firebase session first, so the person really re-chooses (§17).
+   */
+  async function enter(signIn: () => Promise<User>) {
     setError(null);
     setBusy(true);
 
     try {
-      await signInWithGoogle();
+      await signIn();
 
       const bind = await apiFetch<{ needsProfile: boolean }>(
         `/api/invite/${inviteId}/bind`,
@@ -139,7 +165,9 @@ export function InviteFlow({ inviteId }: { inviteId: string }) {
       );
 
       if (!bind.ok) {
-        if (bind.code === "account_mismatch") setStep("mismatch");
+        // /bind will not name the account it rejected. /state will, to a grant
+        // holder, so ask it rather than keeping a second copy of that answer.
+        if (bind.code === "account_mismatch") await refresh();
         else setError(bind.error);
         return;
       }
@@ -226,6 +254,28 @@ export function InviteFlow({ inviteId }: { inviteId: string }) {
                 open it. Your answers stay private to you.
               </p>
 
+              {/*
+                Named before the picker opens rather than corrected afterwards.
+                Someone with more than one Google account -- or on a phone
+                signed into a family member's -- otherwise has no way to know
+                which one to choose until it has already gone wrong (§17).
+              */}
+              {boundEmail ? (
+                <p className="mt-4 text-center leading-relaxed text-ink-soft">
+                  This invitation is linked to{" "}
+                  <strong className="font-semibold text-ink">{boundEmail}</strong>
+                  . Sign in with that Google account to continue.
+                </p>
+              ) : null}
+
+              {authenticated && user?.email ? (
+                <p className="mt-4 text-center leading-relaxed text-ink-soft">
+                  You&apos;re signed in as{" "}
+                  <strong className="font-semibold text-ink">{user.email}</strong>
+                  .
+                </p>
+              ) : null}
+
               {error ? (
                 <Notice tone="error" className="mt-6">
                   {error}
@@ -233,7 +283,23 @@ export function InviteFlow({ inviteId }: { inviteId: string }) {
               ) : null}
 
               <div className="mt-8">
-                <GoogleButton onClick={handleGoogle} pending={busy} />
+                <GoogleButton onClick={() => void enter(signInWithGoogle)} pending={busy}>
+                  {authenticated && user?.email
+                    ? `Continue as ${user.email}`
+                    : undefined}
+                </GoogleButton>
+
+                {authenticated ? (
+                  <Button
+                    variant="secondary"
+                    fullWidth
+                    className="mt-3"
+                    disabled={busy}
+                    onClick={() => void enter(switchGoogleAccount)}
+                  >
+                    Use a different Google account
+                  </Button>
+                ) : null}
               </div>
 
               <TroubleSigningIn inviteId={inviteId} className="mt-10" />
@@ -252,12 +318,58 @@ export function InviteFlow({ inviteId }: { inviteId: string }) {
               <h1 className="text-center text-2xl font-semibold tracking-tight text-ink">
                 This invitation belongs to another account
               </h1>
-              {/* §17: never disclose which account it is bound to. */}
+
+              {/*
+                §17 held that the bound account must never be named. It is named
+                here because reaching this screen requires a valid grant for
+                this invitation -- the password was typed. Withholding it from
+                the one person who proved they hold the invitation left them
+                with nothing to act on but a support email.
+              */}
               <p className="mt-3 text-center leading-relaxed text-ink-soft">
-                This invitation is already associated with another Google account.
-                If you have more than one, try signing in with the account you
-                first used.
+                {boundEmail ? (
+                  <>
+                    This invitation is linked to{" "}
+                    <strong className="font-semibold text-ink">{boundEmail}</strong>
+                    . Sign in with that Google account to continue, or contact
+                    support if it isn&apos;t yours.
+                  </>
+                ) : (
+                  <>
+                    This invitation is already associated with another Google
+                    account. If you have more than one, try signing in with the
+                    account you first used.
+                  </>
+                )}
               </p>
+
+              {user?.email ? (
+                <p className="mt-3 text-center leading-relaxed text-ink-soft">
+                  You&apos;re currently signed in as{" "}
+                  <strong className="font-semibold text-ink">{user.email}</strong>
+                  .
+                </p>
+              ) : null}
+
+              {error ? (
+                <Notice tone="error" className="mt-6">
+                  {error}
+                </Notice>
+              ) : null}
+
+              {/*
+                Without this the screen was a dead end: someone signed into the
+                wrong Google account in this browser had no control to change
+                it. Signing out first guarantees Google asks again.
+              */}
+              <div className="mt-8">
+                <GoogleButton
+                  onClick={() => void enter(switchGoogleAccount)}
+                  pending={busy}
+                >
+                  Use a different Google account
+                </GoogleButton>
+              </div>
 
               <TroubleSigningIn inviteId={inviteId} className="mt-8" />
             </div>

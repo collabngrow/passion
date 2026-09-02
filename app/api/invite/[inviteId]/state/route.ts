@@ -14,9 +14,15 @@ export const dynamic = "force-dynamic";
  * right step without flashing through the wrong ones.
  *
  * §54 governs the whole endpoint: an invitation that does not exist and one
- * that has not been unlocked return exactly the same "password" step, so this
- * cannot be used to enumerate invitations. Nothing here grants access -- every
- * privileged route re-checks independently (§90).
+ * that has not been unlocked return exactly the same "password" step, before
+ * anything is read, so this cannot be used to enumerate invitations. Nothing
+ * here grants access -- every privileged route re-checks independently (§90).
+ *
+ * §17 is relaxed past the grant check, and only there. A caller holding a valid
+ * grant for this invitation has typed its password, so `boundEmail` tells them
+ * which of their Google accounts to use -- the one thing that actually unsticks
+ * someone on a shared device. It is never returned to anyone without that
+ * grant, and /bind still refuses to name the account it rejected.
  */
 
 export type InviteStep =
@@ -40,10 +46,22 @@ export const GET = withErrorHandling(
     // Reveals nothing about whether the invitation exists.
     if (!grant) return jsonOk({ step: "password" satisfies InviteStep });
 
-    const user = await verifyRequest(request);
-    if (!user) return jsonOk({ step: "google" satisfies InviteStep });
-
     const invitation = await getInvitation(inviteId);
+    const user = await verifyRequest(request);
+
+    if (!user) {
+      // Named before signing in, so the picker is opened with the right account
+      // in mind rather than corrected afterwards. Withheld for an invitation
+      // that is missing or paused, which the "unavailable" step below reports
+      // once there is a verified identity to report it to.
+      const boundEmail =
+        invitation?.status === "active" ? invitation.boundEmail : undefined;
+
+      return jsonOk({
+        step: "google" satisfies InviteStep,
+        ...(boundEmail ? { boundEmail } : {}),
+      });
+    }
 
     // Past the password step the visitor already holds a valid grant for this
     // invitation, so reporting that it is unavailable discloses nothing new and
@@ -53,7 +71,10 @@ export const GET = withErrorHandling(
     }
 
     if (invitation.boundUid && invitation.boundUid !== user.uid) {
-      return jsonOk({ step: "mismatch" satisfies InviteStep });
+      return jsonOk({
+        step: "mismatch" satisfies InviteStep,
+        boundEmail: invitation.boundEmail,
+      });
     }
 
     // Unbound: the client posts to /bind to claim it atomically.
