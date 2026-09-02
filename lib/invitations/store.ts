@@ -1,10 +1,14 @@
 import "server-only";
 
 import { FieldValue, Timestamp, db } from "@/lib/firebase/admin";
-import { encryptPassword } from "@/lib/security/encryption";
+import { decryptPassword, encryptPassword } from "@/lib/security/encryption";
 import { hashPassword } from "@/lib/security/password";
 
-import { generateInviteId, generateInvitationPassword } from "./generate";
+import {
+  formatPasswordForDisplay,
+  generateInviteId,
+  generateInvitationPassword,
+} from "./generate";
 import type {
   BindResult,
   Invitation,
@@ -38,9 +42,9 @@ export async function getInvitation(inviteId: string): Promise<Invitation | null
 /**
  * Creates an invitation (§55).
  *
- * Returns the plaintext password exactly once, to the caller. It is never
- * stored in plaintext and cannot be recovered except through the reveal
- * endpoint, which decrypts server-side after reauthentication.
+ * Returns the plaintext password to the caller. It is never stored in
+ * plaintext; the recoverable copy is the AES-GCM ciphertext, which the admin
+ * listing decrypts server-side.
  */
 export async function createInvitation(
   label?: string,
@@ -189,15 +193,29 @@ function iso(value: Timestamp | undefined): string | undefined {
 /**
  * Projects an invitation for the admin UI.
  *
- * Drops passwordHash and encryptedPassword. There is no reason for either to
- * reach a browser, and §88 requires that encrypted passwords are unreadable to
- * clients.
+ * Drops passwordHash and encryptedPassword — neither is any use in a browser,
+ * and §88 requires that encrypted passwords are unreadable to clients — and
+ * carries the decrypted plaintext instead, so the listing needs no separate
+ * reveal round trip.
+ *
+ * A record that will not decrypt (a rotated or missing key) yields a summary
+ * with no password rather than throwing: one unreadable invitation must not
+ * take down the whole listing, and the row shows that it needs rotating.
  */
 export function toSummary(invitation: Invitation): InvitationSummary {
+  let password: string | undefined;
+  try {
+    password = decryptPassword(invitation.encryptedPassword);
+  } catch {
+    password = undefined;
+  }
+
   return {
     inviteId: invitation.inviteId,
     status: invitation.status,
     label: invitation.label,
+    password,
+    formattedPassword: password ? formatPasswordForDisplay(password) : undefined,
     bound: Boolean(invitation.boundUid),
     boundEmail: invitation.boundEmail,
     createdAt: iso(invitation.createdAt) ?? new Date(0).toISOString(),

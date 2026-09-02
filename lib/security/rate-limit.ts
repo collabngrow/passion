@@ -12,7 +12,7 @@ import { Timestamp, db } from "@/lib/firebase/admin";
  * internet-scale. Each check is a single transaction on one document.
  *
  * The policy is deliberately forgiving of humans and hostile to scripts. A
- * participant mistyping a 20-character password several times must not be
+ * participant mistyping an 8-character password several times must not be
  * locked out (§53), so the window is short and self-healing rather than a
  * lockout requiring administrator intervention.
  */
@@ -28,14 +28,15 @@ export type RateLimitPolicy = {
 
 /**
  * Password verification. Generous enough to absorb genuine mistyping, tight
- * enough that online guessing against a ~116-bit password is hopeless.
+ * enough that online guessing against a ~46-bit password is hopeless: 10 tries
+ * per 15 minutes against 57^8 candidates is an expected hit in geological time.
  */
 export const PASSWORD_ATTEMPT_POLICY: RateLimitPolicy = {
   limit: 10,
   windowSeconds: 15 * 60,
 };
 
-/** Administrator reveal and rotate. Low volume by nature (§53). */
+/** Administrator rotate. Low volume by nature (§53). */
 export const ADMIN_SENSITIVE_POLICY: RateLimitPolicy = {
   limit: 30,
   windowSeconds: 15 * 60,

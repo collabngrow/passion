@@ -11,9 +11,9 @@ import { apiFetch } from "@/lib/auth/client";
 /**
  * Invitation management (master_prompt.md §23, §55, §65).
  *
- * Sensitive values stay hidden until explicitly requested (§65). Creating an
- * invitation returns its password once, which is the only moment it exists
- * outside the encrypted record until someone reveals it.
+ * Passwords come down with the listing, decrypted server-side behind the admin
+ * check, and each row shows its own. Nothing here is persisted client-side
+ * (§28).
  */
 export function InvitationsPanel() {
   const [invitations, setInvitations] = useState<InvitationSummaryView[] | null>(null);
@@ -113,7 +113,7 @@ export function InvitationsPanel() {
         <Notice tone="success" className="mt-5">
           Invitation <span className="font-mono">{created.inviteId}</span> created. Its
           password is <span className="font-mono font-semibold">{created.formatted}</span>{" "}
-          — share it now, or reveal it again later from its row.
+          — share it now, or read it again from its row below.
         </Notice>
       ) : null}
 

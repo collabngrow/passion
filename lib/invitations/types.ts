@@ -22,8 +22,8 @@ export type Invitation = {
   passwordHash: string;
 
   /**
-   * AES-256-GCM ciphertext, for administrator reveal (§10B, §25).
-   * Decrypted only inside the reveal endpoint, never in a browser.
+   * AES-256-GCM ciphertext, so an administrator can read back a password they
+   * issued (§10B, §25). Decrypted only server-side, never in a browser.
    */
   encryptedPassword: string;
 
@@ -45,14 +45,25 @@ export type Invitation = {
  * Fields safe to send to the administrator's browser.
  *
  * Deliberately omits passwordHash and encryptedPassword — §88 requires that a
- * participant cannot read encrypted passwords, and there is no reason for an
- * admin browser to hold them either. The plaintext is returned only by the
- * reveal endpoint, only after reauthentication, and is never persisted client-side.
+ * participant cannot read encrypted passwords, and neither the hash nor the
+ * ciphertext has any use in a browser.
+ *
+ * The **plaintext** password is included, decrypted server-side behind the
+ * admin check on the listing route. The administrator issues these passwords
+ * and has to be able to hand them on, so a reveal step gated on a second
+ * Google reauthentication only stood between them and something they are
+ * already entitled to read. It is still never persisted client-side (§28).
  */
 export type InvitationSummary = {
   inviteId: string;
   status: InvitationStatus;
   label?: string;
+
+  /** Plaintext, for the admin listing. Absent only if the record cannot be decrypted. */
+  password?: string;
+  /** The same value grouped for reading aloud: `A2Cd-Ef3H`. */
+  formattedPassword?: string;
+
   bound: boolean;
   boundEmail?: string;
   createdAt: string;

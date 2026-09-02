@@ -149,7 +149,7 @@ Run it twice. The first value is `INVITATION_PASSWORD_ENCRYPTION_KEY`, the secon
 `INVITE_GRANT_SECRET`. Do not reuse one for both.
 
 - **`INVITATION_PASSWORD_ENCRYPTION_KEY`** encrypts invitation passwords so the
-  administrator can reveal them later. **Losing it makes every existing
+  administrator can read them back later. **Losing it makes every existing
   invitation password unrecoverable** — participants who have not yet saved their
   password would need a rotated one. Changing it has the same effect.
 - **`INVITE_GRANT_SECRET`** signs the cookie proving a visitor passed the password
@@ -200,7 +200,7 @@ rather than with an opaque runtime error.
 | `NEXT_PUBLIC_FIREBASE_APP_ID` | yes | no | |
 | `FIREBASE_CLIENT_EMAIL` | yes | **yes** | Service account identity |
 | `FIREBASE_PRIVATE_KEY` | yes | **yes** | Service account key, quoted, `\n` escapes intact |
-| `INVITATION_PASSWORD_ENCRYPTION_KEY` | yes | **yes** | AES-256-GCM key for password reveal |
+| `INVITATION_PASSWORD_ENCRYPTION_KEY` | yes | **yes** | AES-256-GCM key for recoverable passwords |
 | `INVITE_GRANT_SECRET` | yes | **yes** | Signs the invitation grant cookie |
 | `GEMINI_API_KEY_1` | yes | **yes** | At least one key is required |
 | `GEMINI_API_KEY_2` | no | **yes** | Extends the quota fallback |
@@ -303,9 +303,13 @@ To change administrator, change `ADMIN_EMAIL` and redeploy. The address must be 
 Google account that can sign in, and it must be verified by the provider — an
 unverified account claiming the address is refused.
 
-Revealing or rotating an invitation password additionally requires a Google
-reauthentication in the last five minutes, so a session left open on a shared
-machine cannot be used to read out passwords.
+Invitation passwords are shown on the dashboard as soon as the administrator is
+signed in — there is no separate reveal step, and sharing one does not ask again.
+Being the administrator is the whole of the authorization for reading a password
+they issued themselves.
+
+**Rotating** a password still requires a Google reauthentication in the last five
+minutes, because it is destructive: the old password stops working instantly.
 
 Reach the dashboard at `/admin`. Nothing links to it.
 
@@ -339,7 +343,7 @@ omission.
 | Concern | Approach |
 | --- | --- |
 | Invitation passwords | scrypt, salted, parameters encoded in the stored hash |
-| Password reveal | AES-256-GCM, versioned format, decrypted server-side only |
+| Password recovery for admin | AES-256-GCM, versioned format, decrypted server-side only |
 | Password in URL | Never. The link carries an invitation id; the password is entered |
 | Session | Firebase ID token, verified per request with `checkRevoked` |
 | Invitation grant | HttpOnly, signed, invitation-scoped, expiring cookie |
@@ -353,8 +357,9 @@ omission.
 
 Two properties worth stating plainly, because they constrain what support can do:
 
-- **There is no password recovery.** By design. A participant who loses their
-  invitation password needs the administrator to reveal or rotate it.
+- **There is no self-service password recovery.** By design. A participant who
+  loses their invitation password needs the administrator to read it out again
+  or rotate it.
 - **An invitation binds to the first Google account that opens it**, permanently.
   Rotating the password does not rebind it.
 

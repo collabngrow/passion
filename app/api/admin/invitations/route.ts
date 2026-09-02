@@ -12,6 +12,11 @@ export const dynamic = "force-dynamic";
  *
  * Both verify the administrator server-side. Hiding the UI is not access
  * control (§89).
+ *
+ * The listing carries each password in plaintext, decrypted inside
+ * `toSummary`. That is the whole of the authorization for reading a password:
+ * be the administrator. Passwords are never logged (§52), and the browser
+ * holds them in component state only (§28).
  */
 
 export const GET = withErrorHandling("admin/invitations", async (request: Request) => {
@@ -32,9 +37,8 @@ export const POST = withErrorHandling("admin/invitations", async (request: Reque
 
   await recordAdminAction("invitation_created", admin.uid, { inviteId });
 
-  // The only time the plaintext is returned outside an authenticated reveal.
-  // It is not persisted client-side (§28) -- the admin copies or shares it now,
-  // or reveals it later.
+  // Not persisted client-side (§28) -- the admin copies or shares it now, or
+  // reads it again from the listing later.
   return jsonOk({
     inviteId,
     password,

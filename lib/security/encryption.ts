@@ -13,14 +13,14 @@ import { invitationEncryptionKey } from "@/lib/env";
  * Authenticated encryption for recoverable invitation passwords
  * (master_prompt.md §10B).
  *
- * The administrator must be able to reveal a password they issued (§25, §27),
+ * The administrator must be able to read back a password they issued (§25, §27),
  * which a hash cannot support -- hence a second, reversible copy under
  * AES-256-GCM. GCM is authenticated, so a tampered ciphertext fails loudly
  * instead of decrypting to rubbish.
  *
  * The key is server-side only: never committed, never sent to the browser,
- * never stored in Firestore (§10, §51). Decryption happens only inside the
- * admin reveal endpoint (§25).
+ * never stored in Firestore (§10, §51). Decryption happens only server-side,
+ * in the admin invitation listing (§25).
  *
  * Stored format:  v1:<iv base64>:<authTag base64>:<ciphertext base64>
  */

@@ -9,15 +9,21 @@ import { apiFetch, reauthenticateWithGoogle, SignInCancelled } from "@/lib/auth/
 /**
  * One invitation, with its sensitive actions (master_prompt.md §24–§31, §65).
  *
- * The password is masked by default (§24) and only ever held in component
- * state -- never localStorage, sessionStorage, IndexedDB, a URL or a log (§28).
- * It is dropped from state as soon as the row is hidden or the page changes.
+ * The password arrives with the listing, decrypted server-side behind the admin
+ * check, and is shown outright. There is no reveal step: the administrator
+ * issues these passwords and has to read them out to invite anyone, so a second
+ * Google reauthentication only stood between them and their own data.
+ *
+ * It is still only ever held in component state -- never localStorage,
+ * sessionStorage, IndexedDB, a URL or a log (§28) -- and goes when the page does.
  */
 
 export type InvitationSummaryView = {
   inviteId: string;
   status: "active" | "disabled";
   label?: string;
+  password?: string;
+  formattedPassword?: string;
   bound: boolean;
   boundEmail?: string;
   createdAt: string;
@@ -31,64 +37,68 @@ type Props = {
 };
 
 export function InvitationRow({ invitation, inviteUrl, onChanged }: Props) {
-  const [password, setPassword] = useState<string | null>(null);
-  const [formatted, setFormatted] = useState<string | null>(null);
+  /**
+   * Set only by a rotation, so the new password is on screen immediately rather
+   * than after the listing refetches. Otherwise the listing's copy is the truth.
+   */
+  const [rotated, setRotated] = useState<{
+    password: string;
+    formattedPassword: string;
+  } | null>(null);
+
   const [busy, setBusy] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [notice, setNotice] = useState<string | null>(null);
 
+  const password = rotated?.password ?? invitation.password;
+  const formatted = rotated?.formattedPassword ?? invitation.formattedPassword ?? password;
+
   const url = inviteUrl(invitation.inviteId);
 
-  /**
-   * Runs a sensitive action, prompting for a real Google reauthentication when
-   * the server says the session is not fresh enough (§25, §26).
-   */
-  async function sensitive(
-    path: string,
-    action: string,
-  ): Promise<{ password: string; formattedPassword: string } | null> {
+  async function copy(text: string, what: string) {
     setError(null);
-    setNotice(null);
-    setBusy(action);
-
     try {
-      let result = await apiFetch<{ password: string; formattedPassword: string }>(
-        path,
-        { method: "POST" },
-      );
-
-      if (!result.ok && result.code === "reauthentication_required") {
-        await reauthenticateWithGoogle();
-        result = await apiFetch(path, { method: "POST" });
-      }
-
-      if (!result.ok) {
-        setError(result.error);
-        return null;
-      }
-
-      return result.data;
-    } catch (caught) {
-      if (!(caught instanceof SignInCancelled)) {
-        setError("We couldn't confirm your identity. Please try again.");
-      }
-      return null;
-    } finally {
-      setBusy(null);
+      await navigator.clipboard.writeText(text);
+      setNotice(`${what} copied.`);
+    } catch {
+      setError("We couldn't copy that. You can select the text instead.");
     }
   }
 
-  async function handleReveal() {
-    const data = await sensitive(
-      `/api/admin/invitations/${invitation.inviteId}/reveal-password`,
-      "reveal",
-    );
-    if (data) {
-      setPassword(data.password);
-      setFormatted(data.formattedPassword);
+  /**
+   * Share (§29, §64). Uses the Web Share API where available, and falls back to
+   * the clipboard. Nothing is fetched and nothing is reauthenticated -- the
+   * password is already on screen, so asking again would confirm nothing.
+   */
+  async function handleShare() {
+    if (!password) {
+      setError("This invitation's password can't be read. Rotate it to issue a new one.");
+      return;
     }
+
+    setError(null);
+
+    // No internal ids or implementation detail (§29).
+    const text =
+      `Here is your private CollabNGrow Passion Analyzer invitation.\n\n` +
+      `Link:\n${url}\n\nPassword:\n${formatted ?? password}`;
+
+    if (typeof navigator !== "undefined" && "share" in navigator) {
+      try {
+        await navigator.share({ title: "Your Passion Analyzer invitation", text });
+        return;
+      } catch {
+        // Cancelled or unsupported in this context; fall through to clipboard.
+      }
+    }
+    await copy(text, "Invitation");
   }
 
+  /**
+   * Rotation still requires a recent Google reauthentication (§25, §26). It is
+   * destructive -- the old password stops working the instant the new one
+   * starts -- which is a different question from reading one.
+   */
   async function handleRotate() {
     if (
       !window.confirm(
@@ -99,15 +109,35 @@ export function InvitationRow({ invitation, inviteUrl, onChanged }: Props) {
       return;
     }
 
-    const data = await sensitive(
-      `/api/admin/invitations/${invitation.inviteId}/rotate-password`,
-      "rotate",
-    );
-    if (data) {
-      setPassword(data.password);
-      setFormatted(data.formattedPassword);
+    const path = `/api/admin/invitations/${invitation.inviteId}/rotate-password`;
+    setError(null);
+    setNotice(null);
+    setBusy("rotate");
+
+    try {
+      let result = await apiFetch<{ password: string; formattedPassword: string }>(path, {
+        method: "POST",
+      });
+
+      if (!result.ok && result.code === "reauthentication_required") {
+        await reauthenticateWithGoogle();
+        result = await apiFetch(path, { method: "POST" });
+      }
+
+      if (!result.ok) {
+        setError(result.error);
+        return;
+      }
+
+      setRotated(result.data);
       setNotice("Password rotated. The old one no longer works.");
       onChanged();
+    } catch (caught) {
+      if (!(caught instanceof SignInCancelled)) {
+        setError("We couldn't confirm your identity. Please try again.");
+      }
+    } finally {
+      setBusy(null);
     }
   }
 
@@ -127,57 +157,6 @@ export function InvitationRow({ invitation, inviteUrl, onChanged }: Props) {
       return;
     }
     onChanged();
-  }
-
-  function hide() {
-    setPassword(null);
-    setFormatted(null);
-    setNotice(null);
-  }
-
-  async function copy(text: string, what: string) {
-    try {
-      await navigator.clipboard.writeText(text);
-      setNotice(`${what} copied.`);
-    } catch {
-      setError("We couldn't copy that. You can select the text instead.");
-    }
-  }
-
-  /**
-   * Share (§29, §64). Uses the Web Share API where available, and only sends
-   * the password when the administrator explicitly asks to share.
-   */
-  async function handleShare() {
-    if (!password) {
-      const data = await sensitive(
-        `/api/admin/invitations/${invitation.inviteId}/reveal-password`,
-        "share",
-      );
-      if (!data) return;
-      setPassword(data.password);
-      setFormatted(data.formattedPassword);
-      await share(data.formattedPassword);
-      return;
-    }
-    await share(formatted ?? password);
-  }
-
-  async function share(pw: string) {
-    // No internal ids or implementation detail (§29).
-    const text =
-      `Here is your private CollabNGrow Passion Analyzer invitation.\n\n` +
-      `Link:\n${url}\n\nPassword:\n${pw}`;
-
-    if (typeof navigator !== "undefined" && "share" in navigator) {
-      try {
-        await navigator.share({ title: "Your Passion Analyzer invitation", text });
-        return;
-      } catch {
-        // Cancelled or unsupported in this context; fall through to clipboard.
-      }
-    }
-    await copy(text, "Invitation");
   }
 
   const disabled = invitation.status === "disabled";
@@ -221,9 +200,13 @@ export function InvitationRow({ invitation, inviteUrl, onChanged }: Props) {
         <span className="block text-xs font-medium uppercase tracking-wide text-ink-soft">
           Password
         </span>
-        <p className="mt-1 font-mono text-sm text-ink">
-          {password ? formatted ?? password : "••••••••••••"}
-        </p>
+        {password ? (
+          <p className="mt-1 font-mono text-sm text-ink">{formatted}</p>
+        ) : (
+          <p className="mt-1 text-sm text-ink-soft">
+            Unreadable — rotate it to issue a new one.
+          </p>
+        )}
       </div>
 
       {error ? (
@@ -238,21 +221,16 @@ export function InvitationRow({ invitation, inviteUrl, onChanged }: Props) {
       ) : null}
 
       <div className="mt-5 flex flex-wrap gap-2">
-        {password ? (
-          <>
-            <Button onClick={() => void copy(password, "Password")}>Copy</Button>
-            <Button variant="secondary" onClick={hide}>
-              Hide
-            </Button>
-          </>
-        ) : (
-          <Button onClick={() => void handleReveal()} disabled={busy !== null}>
-            {busy === "reveal" ? "Confirming…" : "Reveal password"}
-          </Button>
-        )}
+        <Button onClick={() => void handleShare()} disabled={!password}>
+          Share
+        </Button>
 
-        <Button variant="secondary" onClick={() => void handleShare()} disabled={busy !== null}>
-          {busy === "share" ? "Preparing…" : "Share"}
+        <Button
+          variant="secondary"
+          onClick={() => password && void copy(password, "Password")}
+          disabled={!password}
+        >
+          Copy password
         </Button>
 
         <Button variant="secondary" onClick={() => void copy(url, "Link")}>

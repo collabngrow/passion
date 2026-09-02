@@ -29,12 +29,17 @@ const ALPHABET = "23456789ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz";
 const INVITE_ID_LENGTH = 10;
 
 /**
- * 20 characters: roughly 116 bits.
+ * 8 characters over the 57-character alphabet: roughly 46 bits.
  *
- * Long enough that the rate limiter is a second line of defence rather than the
- * only one, short enough to type (§9).
+ * Short enough to read off a message and type by hand on a phone, which is how
+ * these are actually delivered (§9). 46 bits is far past what online guessing
+ * can reach -- at the 10-attempts-per-15-minutes limit in
+ * `PASSWORD_ATTEMPT_POLICY`, an expected hit is on the order of 10^7 years --
+ * but it no longer has the margin to survive an offline attack on a stolen
+ * hash. The scrypt work factor in `lib/security/password.ts` is what carries
+ * that case now, so it must not be lowered.
  */
-const PASSWORD_LENGTH = 20;
+const PASSWORD_LENGTH = 8;
 
 /**
  * Random string over the unambiguous alphabet.
@@ -60,14 +65,15 @@ export function generateInvitationPassword(): string {
 }
 
 /**
- * Groups a password for display: `A2Cd-Ef3H-...`.
+ * Groups a password for display: `A2Cd-Ef3H`.
  *
+ * Grouped in fours, so an 8-character password reads as two even halves.
  * Presentation only -- the stored and verified value is always the ungrouped
  * string, and input is normalised with `normalisePasswordInput` before
  * verification.
  */
 export function formatPasswordForDisplay(password: string): string {
-  return (password.match(/.{1,5}/g) ?? [password]).join("-");
+  return (password.match(/.{1,4}/g) ?? [password]).join("-");
 }
 
 /**

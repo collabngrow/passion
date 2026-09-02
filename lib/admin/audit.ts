@@ -14,6 +14,10 @@ const COLLECTION = "adminActions";
 
 export type AdminActionType =
   | "invitation_created"
+  /**
+   * No longer written: passwords come down with the admin listing rather than
+   * through a gated reveal. Kept so existing rows still render (§65).
+   */
   | "password_revealed"
   | "password_rotated"
   | "invitation_disabled"
@@ -34,8 +38,8 @@ export type AdminAction = {
  *
  * Never throws: an audit write failing must not roll back or block the action
  * the administrator actually asked for. A missing audit row is a smaller
- * problem than a reveal that appears to fail after the password was already
- * shown.
+ * problem than a rotation that appears to fail after the password has already
+ * been replaced.
  */
 export async function recordAdminAction(
   type: AdminActionType,
