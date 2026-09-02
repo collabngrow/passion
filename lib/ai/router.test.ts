@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
 
-import { classifyFailure } from "./router";
-import { DEFAULT_MODELS, defaultConfig } from "./config";
+import { MAX_ATTEMPTS, buildCandidates, classifyFailure } from "./router";
+import { DEFAULT_MODELS, defaultConfig, normaliseTier } from "./config";
 import {
   InvalidAiOutputError,
   interpretationSchema,
@@ -86,13 +86,38 @@ describe("default configuration (§34)", () => {
    * §34 forbids hard-coding obsolete model names. These ids were taken from the
    * live model catalogue rather than assumed; this test pins them so a rename
    * is a deliberate change.
+   *
+   * `gemini-3.1-flash-lite` in particular: there is no `gemini-3.1-flash`, and
+   * an id that does not exist would 404 on every key on every call while
+   * looking exactly like a configured fallback.
    */
   it("uses the model sequence the specification asks for", () => {
     expect(DEFAULT_MODELS.map((entry) => entry.model)).toEqual([
       "gemini-3.6-flash",
-      "gemini-3.5-flash",
       "gemini-3.5-flash-lite",
     ]);
+  });
+
+  /**
+   * 3.7 was measured returning `503 high demand` or nothing at all inside 90s
+   * on all three accounts. First in the walk, that costs every generation a
+   * full attempt timeout before any working model is reached.
+   */
+  it("does not query gemini-3.7-flash", () => {
+    expect(DEFAULT_MODELS.map((entry) => entry.model)).not.toContain("gemini-3.7-flash");
+  });
+
+  /**
+   * The reserve pass is deliberately empty: the owner's decision is that only
+   * these two models are queried. The mechanism stays available -- promoting a
+   * model in the admin UI is all it takes -- so this pins the current intent
+   * rather than the absence of the feature.
+   */
+  it("queries only the two configured models, with nothing in reserve", () => {
+    expect(
+      DEFAULT_MODELS.filter((entry) => entry.tier === "primary").map((e) => e.model),
+    ).toEqual(["gemini-3.6-flash", "gemini-3.5-flash-lite"]);
+    expect(DEFAULT_MODELS.filter((entry) => entry.tier === "reserve")).toEqual([]);
   });
 
   it("orders by priority and enables every default", () => {
@@ -107,6 +132,126 @@ describe("default configuration (§34)", () => {
     const config = defaultConfig();
     expect(config.models.length).toBeGreaterThan(0);
     expect(Array.isArray(config.keyOrder)).toBe(true);
+  });
+
+  /**
+   * A stored configuration written before tiers existed carries no `tier`.
+   * Dropping those entries would quietly shrink the walk; reading them as
+   * reserve would quietly demote every model the administrator chose.
+   */
+  it("reads a tierless stored entry as primary", () => {
+    expect(normaliseTier(undefined)).toBe("primary");
+    expect(normaliseTier("nonsense")).toBe("primary");
+    expect(normaliseTier("reserve")).toBe("reserve");
+  });
+});
+
+/**
+ * The walk order is the feature, and a regression in it is silent: nothing
+ * throws, no build fails, participants are simply served a weaker model while
+ * a stronger one was merely busy for a moment.
+ */
+describe("candidate ordering (§35)", () => {
+  const POOLS = [
+    { id: "key1", apiKey: "a" },
+    { id: "key2", apiKey: "b" },
+    { id: "key3", apiKey: "c" },
+  ];
+  const KEY_ORDER = ["key1", "key2", "key3"];
+
+  const walk = () =>
+    buildCandidates(DEFAULT_MODELS, KEY_ORDER, POOLS).map(
+      (c) => `${c.keyPoolId}:${c.model}`,
+    );
+
+  /** The configured walk: both models on a key, then on to the next key (§35). */
+  it("tries both models on a key before moving to the next key", () => {
+    expect(walk()).toEqual([
+      "key1:gemini-3.6-flash",
+      "key1:gemini-3.5-flash-lite",
+      "key2:gemini-3.6-flash",
+      "key2:gemini-3.5-flash-lite",
+      "key3:gemini-3.6-flash",
+      "key3:gemini-3.5-flash-lite",
+    ]);
+  });
+
+  /**
+   * The tier mechanism, exercised against a fixture rather than the live
+   * defaults, which currently configure no reserve. Keeping this covered means
+   * promoting a model in the admin UI cannot quietly produce a walk nobody has
+   * tested.
+   */
+  describe("when a reserve model is configured", () => {
+    const WITH_RESERVE = [
+      ...DEFAULT_MODELS,
+      {
+        priority: 3,
+        provider: "gemini" as const,
+        model: "gemini-3.1-flash-lite",
+        enabled: true,
+        tier: "reserve" as const,
+      },
+    ];
+
+    const reserveWalk = () =>
+      buildCandidates(WITH_RESERVE, KEY_ORDER, POOLS).map(
+        (c) => `${c.keyPoolId}:${c.model}`,
+      );
+
+    it("exhausts every primary model on every key before any reserve", () => {
+      expect(reserveWalk()).toEqual([
+        "key1:gemini-3.6-flash",
+        "key1:gemini-3.5-flash-lite",
+        "key2:gemini-3.6-flash",
+        "key2:gemini-3.5-flash-lite",
+        "key3:gemini-3.6-flash",
+        "key3:gemini-3.5-flash-lite",
+        "key1:gemini-3.1-flash-lite",
+        "key2:gemini-3.1-flash-lite",
+        "key3:gemini-3.1-flash-lite",
+      ]);
+    });
+
+    /**
+     * The specific mistake this catches: a reserve reached on key 1 because the
+     * first model was rate-limited for a moment, rather than because the strong
+     * models were genuinely spent across all three accounts.
+     */
+    it("never reaches the reserve while any primary candidate remains", () => {
+      const order = reserveWalk();
+      const firstReserve = order.findIndex((c) => c.includes("3.1-flash-lite"));
+      const lastPrimary = order.findLastIndex((c) => !c.includes("3.1-flash-lite"));
+      expect(firstReserve).toBeGreaterThan(lastPrimary);
+    });
+
+    it("stays within the attempt ceiling", () => {
+      expect(MAX_ATTEMPTS).toBeGreaterThanOrEqual(reserveWalk().length);
+    });
+  });
+
+  /**
+   * Without this the reserve tier is unreachable and nothing says so -- the
+   * ceiling was 12 against 15 candidates, which cut off exactly the three
+   * reserve candidates the tier exists to provide.
+   */
+  it("allows enough attempts to reach the last candidate", () => {
+    expect(MAX_ATTEMPTS).toBeGreaterThanOrEqual(walk().length);
+  });
+
+  it("skips a key pool with no key present", () => {
+    const partial = buildCandidates(DEFAULT_MODELS, KEY_ORDER, [POOLS[0]]);
+    expect(partial).toHaveLength(2);
+    expect(partial.every((c) => c.keyPoolId === "key1")).toBe(true);
+  });
+
+  it("omits a disabled model from the walk", () => {
+    const someOff = DEFAULT_MODELS.map((entry) =>
+      entry.model === "gemini-3.6-flash" ? { ...entry, enabled: false } : entry,
+    );
+    const order = buildCandidates(someOff, KEY_ORDER, POOLS).map((c) => c.model);
+    expect(order).not.toContain("gemini-3.6-flash");
+    expect(order).toHaveLength(3);
   });
 });
 

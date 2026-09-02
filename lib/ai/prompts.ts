@@ -187,6 +187,10 @@ in more than one field -- a repeated quotation is the clearest sign this has gon
   the reading happens. Do not re-list the evidence -- observation already did.
 - tension: two things they want that will not both fit, stated flat, both sides as facts,
   no resolution. Null if there is no genuine one. Never manufacture it.
+  Two sentences, and then stop. Name the first side, name the second, end the field.
+  Because this field resolves nothing, there is no natural closing beat to write towards
+  and it is the one most likely to run on; if you find yourself adding clauses that
+  restate what you have already said, the field was finished before them.
 - reflection: the one thing worth leaving them with -- what the section opens up, or a
   question their own answers raise. Not a summary of the three fields above it. Null if
   everything worth saying has been said.

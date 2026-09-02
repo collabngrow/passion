@@ -35,15 +35,33 @@ export type Interpretation = z.infer<typeof interpretationSchema>;
  * Written out rather than derived, because the provider's schema dialect is
  * narrower than JSON Schema and a generated one tends to include keywords it
  * rejects.
+ *
+ * `maxLength` mirrors the zod caps above, and is the fix for a failure observed
+ * live on three different models against the same input: `tension` degenerating
+ * into a repetition loop ("forever and ever indefinitely perpetually endlessly
+ * ...") until it either hit `maxOutputTokens` and truncated the JSON, or came
+ * back whole and was rejected by zod as `too_big`. Either way the participant
+ * receives nothing.
+ *
+ * `tension` is the field that runs away, and it is not hard to see why: it is
+ * the one field instructed to state both sides and offer no resolution, so
+ * nothing in the task tells the model it has finished. Stating the bound only
+ * in the prompt makes it advisory -- the prompt already said "tension 2
+ * sentences" and all three models sailed past it. In the schema the provider
+ * enforces it during decoding, so it stops instead of looping.
  */
 export const interpretationResponseSchema = {
   type: "object",
   properties: {
-    observation: { type: "string" },
-    interpretation: { type: "string" },
-    relevantThemes: { type: "array", items: { type: "string" } },
-    tension: { type: "string" },
-    reflection: { type: "string" },
+    observation: { type: "string", maxLength: 2000 },
+    interpretation: { type: "string", maxLength: 4000 },
+    relevantThemes: {
+      type: "array",
+      items: { type: "string", maxLength: 60 },
+      maxItems: 8,
+    },
+    tension: { type: "string", maxLength: 2000 },
+    reflection: { type: "string", maxLength: 2000 },
     confidence: { type: "string", enum: ["low", "moderate", "high"] },
   },
   required: ["observation", "interpretation"],

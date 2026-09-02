@@ -3,6 +3,7 @@ import {
   availableKeyIds,
   loadAiConfig,
   maskedKeys,
+  normaliseTier,
   saveAiConfig,
   type ModelEntry,
 } from "@/lib/ai/config";
@@ -56,6 +57,7 @@ export const POST = withErrorHandling("admin/ai-config", async (request: Request
       provider: "gemini",
       model,
       enabled: entry.enabled !== false,
+      tier: normaliseTier(entry.tier),
     });
   }
 
@@ -63,6 +65,12 @@ export const POST = withErrorHandling("admin/ai-config", async (request: Request
   // interpretation engine offline.
   if (!models.some((entry) => entry.enabled)) {
     throw badRequest("At least one model must be enabled.");
+  }
+
+  // A configuration that is entirely reserve has no strong model to fall from,
+  // so every participant is served the fallback as though it were the choice.
+  if (!models.some((entry) => entry.enabled && entry.tier === "primary")) {
+    throw badRequest("At least one enabled model must be a primary model.");
   }
 
   const available = availableKeyIds();

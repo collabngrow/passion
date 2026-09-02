@@ -9,12 +9,20 @@ import { loadAiConfig, type ModelEntry } from "./config";
 /**
  * The model router (master_prompt.md §32, §34, §35, §36).
  *
- * Walks (key pool × model) candidates in configured order. §35 fixes the shape:
- * exhaust every configured model on key 1, then move to key 2, then key 3.
+ * Walks (tier × key pool × model) candidates in configured order. §35 fixes the
+ * inner shape: exhaust every configured model on key 1, then move to key 2,
+ * then key 3.
+ *
+ * The tier is the outer loop, and it is what keeps a weak model from being
+ * reached early. Every `primary` model is tried on every key before any
+ * `reserve` model is tried at all -- so a 3.7 that is merely rate-limited on
+ * key 1 falls to 3.6 on key 1, not to the reserve. The reserve is only reached
+ * when the strong models are exhausted across all three keys, which is the one
+ * situation where a weaker reading beats no reading.
  *
  * §36 is the important constraint. Not every failure deserves a fallback:
- * retrying a malformed request against nine candidates burns quota to produce
- * nine identical failures, and masks a bug behind an outage. So failures are
+ * retrying a malformed request against every candidate burns quota to produce
+ * identical failures, and masks a bug behind an outage. So failures are
  * classified, and only genuinely transient or capacity-related ones advance.
  */
 
@@ -100,8 +108,20 @@ export class AiNotConfiguredError extends Error {
   }
 }
 
-/** Hard ceiling regardless of configuration size (§36: no infinite retries). */
-const MAX_ATTEMPTS = 12;
+/**
+ * Hard ceiling regardless of configuration size (§36: no infinite retries).
+ *
+ * This has to be at least the number of candidates the configuration produces,
+ * or the tail of the walk is unreachable and nothing says so -- and the tail is
+ * precisely the reserve tier, the part that exists for the day the strong
+ * models run out. The previous ceiling of 12 would have cut off a 15-candidate
+ * walk exactly where it was needed.
+ *
+ * 15 leaves room for five models across the three keys. `router.test.ts` fails
+ * if a configuration outgrows it, so adding models is caught here rather than
+ * discovered as a reserve that never fires.
+ */
+export const MAX_ATTEMPTS = 15;
 
 /**
  * Below this much remaining budget, no further candidate is started.
@@ -197,24 +217,46 @@ function extractStatus(error: unknown): number | null {
   return null;
 }
 
-/** Candidate list: every enabled model on key 1, then on key 2, then key 3 (§35). */
-function buildCandidates(
+export type Candidate = {
+  model: string;
+  keyPoolId: string;
+  apiKey: string;
+  tier: ModelEntry["tier"];
+};
+
+/**
+ * Candidate list: every enabled primary model on key 1, then on key 2, then key
+ * 3 (§35) -- and only once all of those are spent, the same walk over the
+ * reserve models.
+ *
+ * Exported for the test, because the ordering *is* the feature. A regression
+ * here does not throw or fail a build; it quietly starts serving a weaker model
+ * to participants whose stronger models were merely busy for a moment.
+ */
+export function buildCandidates(
   models: ModelEntry[],
   keyOrder: string[],
   pools: { id: string; apiKey: string }[],
-): { model: string; keyPoolId: string; apiKey: string }[] {
+): Candidate[] {
   const byId = new Map(pools.map((pool) => [pool.id, pool.apiKey]));
   const enabled = models
     .filter((entry) => entry.enabled)
     .sort((a, b) => a.priority - b.priority);
 
-  const candidates: { model: string; keyPoolId: string; apiKey: string }[] = [];
+  const candidates: Candidate[] = [];
 
-  for (const keyPoolId of keyOrder) {
-    const apiKey = byId.get(keyPoolId);
-    if (!apiKey) continue;
-    for (const entry of enabled) {
-      candidates.push({ model: entry.model, keyPoolId, apiKey });
+  // Tier is the outer loop: the whole primary pass, across every key, before
+  // the reserve pass begins.
+  for (const tier of ["primary", "reserve"] as const) {
+    const inTier = enabled.filter((entry) => entry.tier === tier);
+    if (inTier.length === 0) continue;
+
+    for (const keyPoolId of keyOrder) {
+      const apiKey = byId.get(keyPoolId);
+      if (!apiKey) continue;
+      for (const entry of inTier) {
+        candidates.push({ model: entry.model, keyPoolId, apiKey, tier });
+      }
     }
   }
 
@@ -319,7 +361,7 @@ export async function generate(
       lastMessage = error instanceof Error ? error.message : "unknown error";
 
       console.warn(
-        `ai: request failed model=${candidate.model} ` +
+        `ai: request failed model=${candidate.model} tier=${candidate.tier} ` +
           `keyPool=${candidate.keyPoolId} action=${classification}`,
       );
 

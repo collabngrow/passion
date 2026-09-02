@@ -15,11 +15,14 @@ import { apiFetch } from "@/lib/auth/client";
  * variables and never reach the browser (§33, §37).
  */
 
+type ModelTier = "primary" | "reserve";
+
 type ModelEntry = {
   priority: number;
   provider: "gemini";
   model: string;
   enabled: boolean;
+  tier: ModelTier;
 };
 
 type ConfigResponse = {
@@ -28,6 +31,20 @@ type ConfigResponse = {
   availableKeys: { id: string; masked: string }[];
   updatedAt: string | null;
 };
+
+/**
+ * Sorts into the order the router actually walks, and renumbers to match.
+ *
+ * The panel's whole job is to show the sequence, so a list that displayed a
+ * reserve model above a primary one would state a sequence the engine does not
+ * use -- and the administrator would have no way to know.
+ */
+function inWalkOrder(entries: ModelEntry[]): ModelEntry[] {
+  const rank = (tier: ModelTier) => (tier === "primary" ? 0 : 1);
+  return [...entries]
+    .sort((a, b) => rank(a.tier) - rank(b.tier) || a.priority - b.priority)
+    .map((entry, index) => ({ ...entry, priority: index + 1 }));
+}
 
 export function AiConfigPanel() {
   const [models, setModels] = useState<ModelEntry[] | null>(null);
@@ -45,7 +62,7 @@ export function AiConfigPanel() {
       setError(result.error);
       return;
     }
-    setModels(result.data.models);
+    setModels(inWalkOrder(result.data.models));
     setKeys(result.data.availableKeys);
     setKeyOrder(result.data.keyOrder);
   }, []);
@@ -59,14 +76,34 @@ export function AiConfigPanel() {
     };
   }, [load]);
 
-  function move(index: number, direction: -1 | 1) {
-    if (!models) return;
+  /**
+   * Reorders within a tier only. Reordering across the boundary would look like
+   * a promotion but change nothing, since the router walks every primary on
+   * every key before any reserve regardless of position.
+   */
+  function canMove(index: number, direction: -1 | 1) {
+    if (!models) return false;
     const target = index + direction;
-    if (target < 0 || target >= models.length) return;
+    if (target < 0 || target >= models.length) return false;
+    return models[index].tier === models[target].tier;
+  }
+
+  function move(index: number, direction: -1 | 1) {
+    if (!models || !canMove(index, direction)) return;
+    const target = index + direction;
 
     const next = [...models];
     [next[index], next[target]] = [next[target], next[index]];
     setModels(next.map((entry, i) => ({ ...entry, priority: i + 1 })));
+    setSaved(false);
+  }
+
+  /** Moves a model between the primary pass and the reserve pass. */
+  function setTier(index: number, tier: ModelTier) {
+    if (!models) return;
+    const next = [...models];
+    next[index] = { ...next[index], tier };
+    setModels(inWalkOrder(next));
     setSaved(false);
   }
 
@@ -81,7 +118,7 @@ export function AiConfigPanel() {
   function remove(index: number) {
     if (!models) return;
     setModels(
-      models.filter((_, i) => i !== index).map((entry, i) => ({ ...entry, priority: i + 1 })),
+      inWalkOrder(models.filter((_, i) => i !== index)),
     );
     setSaved(false);
   }
@@ -97,10 +134,20 @@ export function AiConfigPanel() {
     }
 
     setError(null);
-    setModels([
-      ...models,
-      { priority: models.length + 1, provider: "gemini", model, enabled: true },
-    ]);
+    setModels(
+      inWalkOrder([
+        ...models,
+        {
+          priority: models.length + 1,
+          provider: "gemini",
+          model,
+          enabled: true,
+          // Added as primary: a new model is presumed to be one worth reaching
+          // for, and demoting it to reserve is one click away.
+          tier: "primary",
+        },
+      ]),
+    );
     setNewModel("");
     setSaved(false);
   }
@@ -137,8 +184,11 @@ export function AiConfigPanel() {
     <div>
       <h1 className="text-2xl font-semibold tracking-tight text-ink">AI configuration</h1>
       <p className="mt-2 text-ink-soft">
-        Models are tried in order. Every enabled model is tried on the first key, then the
-        same sequence on the next key, and so on.
+        Every <strong>primary</strong> model is tried on the first key, then the same
+        sequence on the next key, and so on across every key. Only when all of them are
+        exhausted does the <strong>reserve</strong> begin, walking its own models across
+        the keys the same way. Every model receives the identical instructions and
+        framework context, so the reserve is a quieter voice, not a different reading.
       </p>
 
       {error ? (
@@ -177,6 +227,17 @@ export function AiConfigPanel() {
                 <span
                   className={[
                     "rounded-sm px-2 py-1 text-xs font-semibold",
+                    entry.tier === "primary"
+                      ? "bg-brand-soft text-brand-dark"
+                      : "bg-line text-ink-soft",
+                  ].join(" ")}
+                >
+                  {entry.tier === "primary" ? "Primary" : "Reserve"}
+                </span>
+
+                <span
+                  className={[
+                    "rounded-sm px-2 py-1 text-xs font-semibold",
                     entry.enabled
                       ? "bg-positive/10 text-positive"
                       : "bg-line text-ink-soft",
@@ -189,7 +250,7 @@ export function AiConfigPanel() {
                   <button
                     type="button"
                     onClick={() => move(index, -1)}
-                    disabled={index === 0}
+                    disabled={!canMove(index, -1)}
                     aria-label={`Move ${entry.model} up`}
                     className="rounded-md px-2 py-1 text-sm text-ink-soft hover:bg-brand-soft disabled:opacity-40"
                   >
@@ -198,11 +259,23 @@ export function AiConfigPanel() {
                   <button
                     type="button"
                     onClick={() => move(index, 1)}
-                    disabled={index === models.length - 1}
+                    disabled={!canMove(index, 1)}
                     aria-label={`Move ${entry.model} down`}
                     className="rounded-md px-2 py-1 text-sm text-ink-soft hover:bg-brand-soft disabled:opacity-40"
                   >
                     ↓
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() =>
+                      setTier(index, entry.tier === "primary" ? "reserve" : "primary")
+                    }
+                    aria-label={`Make ${entry.model} ${
+                      entry.tier === "primary" ? "a reserve" : "a primary"
+                    } model`}
+                    className="rounded-md px-2 py-1 text-sm text-brand hover:bg-brand-soft"
+                  >
+                    {entry.tier === "primary" ? "To reserve" : "To primary"}
                   </button>
                   <button
                     type="button"

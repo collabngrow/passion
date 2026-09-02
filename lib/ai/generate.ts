@@ -123,9 +123,20 @@ export async function generateSectionInterpretation(
     systemInstruction,
     prompt,
     responseSchema: interpretationResponseSchema,
-    // 1600 truncated the JSON mid-object on the live smoke test: thinking
-    // tokens are charged against this budget, and consumed most of it.
-    maxOutputTokens: 4096,
+    /*
+     * 1600 truncated the JSON mid-object on the live smoke test: thinking
+     * tokens are charged against this budget, and consumed most of it.
+     *
+     * Raised 4096 -> 8192 when the reserve model was added. `thinkingBudget` is
+     * a hint rather than a cap on these models -- gemini-3.1-flash-lite was
+     * measured spending 972 and 984 thinking tokens against a budget of 512 --
+     * and one live run then produced 3,109 output tokens, hitting the 4096
+     * ceiling and truncating the JSON mid-string, which discards the whole
+     * generation. The ceiling is not a cost: an ordinary response uses ~400
+     * output tokens and is unaffected. What it buys is that an occasional
+     * over-long reflection arrives instead of nothing at all (§75).
+     */
+    maxOutputTokens: 8192,
     thinkingBudget: 512,
     temperature: 0.7,
     budgetMs: GENERATION_BUDGET_MS,

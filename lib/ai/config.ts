@@ -19,13 +19,26 @@ import { geminiKeyPools } from "@/lib/env";
 
 const DOC_PATH = { collection: "system", doc: "aiConfig" } as const;
 
+/**
+ * Which pass of the walk a model belongs to.
+ *
+ * `primary` models are tried first, every one of them on every key, before any
+ * `reserve` model is touched. The reserve exists so that exhausting the strong
+ * models does not mean the participant gets nothing: a weaker model on a
+ * separate daily quota is still a reflection, and every model receives the same
+ * system instruction and framework context, so the reserve produces the same
+ * kind of reading rather than a degraded one.
+ */
+export type ModelTier = "primary" | "reserve";
+
 export type ModelEntry = {
-  /** Priority order, 1-based. */
+  /** Priority order, 1-based, across the whole list. */
   priority: number;
   provider: "gemini";
   /** Exact model id as the provider expects it. */
   model: string;
   enabled: boolean;
+  tier: ModelTier;
 };
 
 export type AiConfig = {
@@ -39,13 +52,34 @@ export type AiConfig = {
  * Default sequence (§34).
  *
  * Flash-class models throughout: the interpretation task is long-context and
- * runs ~15 times per participant, where a Pro model would cost far more for
+ * runs 13 times per participant, where a Pro model would cost far more for
  * output the quality bar does not require.
+ *
+ * Two models per key: 3.6 Flash, then 3.5 Flash-Lite, then the next key. Both
+ * were verified live against the real prompt (see MEMORY.md, Sprint 18).
+ *
+ * **No model is in the reserve tier**, so the reserve pass is currently empty
+ * and the walk is a single pass. The tier mechanism is still live: promoting a
+ * model to reserve in the admin UI makes it run only after every primary is
+ * spent on every key. Nothing here needs to change to use it.
+ *
+ * `gemini-3.7-flash` is deliberately absent. It is in the catalogue and the key
+ * accepts it, but every live attempt across all three accounts returned either
+ * `503 high demand` or no response at all inside 90 seconds. A model that is
+ * first in the walk and unavailable costs each generation a full attempt
+ * timeout before anything else is tried -- the participant waits, and the
+ * budget that should have paid for a fallback is already spent.
+ *
+ * If a 3.1 model is ever added, the id is `gemini-3.1-flash-lite`. There is no
+ * `gemini-3.1-flash` in the live catalogue -- only the lite, pro-preview and
+ * image/tts/live variants -- and naming a model that does not exist costs a 404
+ * round-trip on every key, on every call, forever, because `classifyFailure`
+ * correctly reads 404 as "try the next candidate" rather than as a
+ * configuration error.
  */
 export const DEFAULT_MODELS: ModelEntry[] = [
-  { priority: 1, provider: "gemini", model: "gemini-3.6-flash", enabled: true },
-  { priority: 2, provider: "gemini", model: "gemini-3.5-flash", enabled: true },
-  { priority: 3, provider: "gemini", model: "gemini-3.5-flash-lite", enabled: true },
+  { priority: 1, provider: "gemini", model: "gemini-3.6-flash", enabled: true, tier: "primary" },
+  { priority: 2, provider: "gemini", model: "gemini-3.5-flash-lite", enabled: true, tier: "primary" },
 ];
 
 export function defaultConfig(): AiConfig {
@@ -64,7 +98,7 @@ export function availableKeyIds(): string[] {
   }
 }
 
-function isModelEntry(value: unknown): value is ModelEntry {
+function isModelEntry(value: unknown): value is Omit<ModelEntry, "tier"> {
   if (typeof value !== "object" || value === null) return false;
   const entry = value as Record<string, unknown>;
   return (
@@ -73,6 +107,16 @@ function isModelEntry(value: unknown): value is ModelEntry {
     typeof entry.enabled === "boolean" &&
     typeof entry.priority === "number"
   );
+}
+
+/**
+ * A stored entry written before tiers existed has no `tier`, and must not be
+ * dropped for it -- silently discarding a configured model is how the engine
+ * ends up running on fewer candidates than the administrator can see.
+ * "primary" is the safe reading: it preserves the old single-pass behaviour.
+ */
+export function normaliseTier(value: unknown): ModelTier {
+  return value === "reserve" ? "reserve" : "primary";
 }
 
 /** Loads the configuration, falling back to the default. */
@@ -86,7 +130,12 @@ export async function loadAiConfig(): Promise<AiConfig> {
     if (!snapshot.exists) return defaultConfig();
 
     const data = snapshot.data() as Partial<AiConfig> & { updatedAt?: Timestamp };
-    const models = Array.isArray(data.models) ? data.models.filter(isModelEntry) : [];
+    const models: ModelEntry[] = (Array.isArray(data.models) ? data.models : [])
+      .filter(isModelEntry)
+      .map((entry) => ({
+        ...entry,
+        tier: normaliseTier((entry as { tier?: unknown }).tier),
+      }));
 
     // A stored configuration with nothing usable in it must not silently
     // disable the whole interpretation engine.
@@ -121,7 +170,11 @@ export async function saveAiConfig(config: {
       {
         models: config.models
           .filter(isModelEntry)
-          .map((entry, index) => ({ ...entry, priority: index + 1 })),
+          .map((entry, index) => ({
+            ...entry,
+            priority: index + 1,
+            tier: normaliseTier((entry as { tier?: unknown }).tier),
+          })),
         keyOrder: config.keyOrder,
         updatedAt: Timestamp.now(),
       },
