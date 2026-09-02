@@ -5,10 +5,15 @@ import { fileURLToPath } from "node:url";
 import { GoogleGenAI } from "@google/genai";
 import { describe, expect, it } from "vitest";
 
-import { buildInterpretationPrompt } from "@/lib/ai/prompts";
-import { selectKnowledge } from "@/lib/ai/retrieval";
-import { interpretationResponseSchema, interpretationSchema } from "@/lib/ai/schema";
-import { getSection, questionsInSection } from "@/lib/exercise";
+import { buildInterpretationPrompt, buildSynthesisPrompt } from "@/lib/ai/prompts";
+import { fullKnowledgeBase, selectKnowledge } from "@/lib/ai/retrieval";
+import {
+  interpretationResponseSchema,
+  interpretationSchema,
+  synthesisResponseSchema,
+  synthesisSchema,
+} from "@/lib/ai/schema";
+import { exercise, getSection, questionsInSection } from "@/lib/exercise";
 
 /**
  * End-to-end smoke test for the interpretation engine.
@@ -84,6 +89,136 @@ loyalty, and I've known that for a while without saying it.`,
 const PRIOR = `What Have You Stopped Wanting?: I was going to build something of my own,
 separate from the business. Not because the business is bad. Just mine. I haven't said
 that out loud to anyone in about eight years, including my wife.`;
+
+/**
+ * The same person, answering across the whole exercise.
+ *
+ * The synthesis is supposed to find what no single section shows, so the fixture
+ * plants threads that only connect across parts: the unsaid thing of his own
+ * appears in part 1, the creative line that went quiet coincides with the health
+ * he let go in part 6, and the conversations he avoids surface in three
+ * different vocabularies.
+ */
+const FULL_ANSWERS: Record<string, string> = {
+  ...ANSWERS,
+  q1: `The business is stable enough now that a bad quarter isn't frightening. I've
+stopped taking the jobs that would stretch us. I tell myself that's prudence, and some
+of it is.`,
+  q3: `I was going to build something of my own, separate from the business. Not because
+the business is bad. Just mine. I haven't said that out loud to anyone in about eight
+years, including my wife.`,
+  q5: `Until the youngest finishes school. Then until the business can run without me,
+which it more or less can already, if I'm honest about it.`,
+  q11: `I stopped going to church, which mattered to my mother and used to matter to me.
+That's the only real one. It cost me something and I'd still do it.`,
+  q14: `I don't know. I've cleared time and then filled it with more of the same work.
+That's the bit that bothers me.`,
+  q15: `Something small and mine. A workshop, maybe teaching. I keep not writing this
+down anywhere.`,
+  q19: `Sleep, and to stop drinking on weeknights. I've known for four years.`,
+  q21: `I stopped drawing around the time we took on the second warehouse. I hadn't
+connected those two things until now.`,
+  q24: `Security, mostly. Enough that nobody has to ask. I don't spend much and I don't
+give much away either, which I notice looks worse written down.`,
+  q26: `My wife, when I let her. Otherwise nobody. Everyone else needs something from me
+and I've arranged it that way.`,
+  q29: `I don't. I fill it. An empty Saturday and I'll find something at the warehouse
+that needs me.`,
+  q30: `That it's self-indulgent at my age, and that if it were any good I'd have done
+it by now.`,
+  q37: `Have the conversation with my ops manager. Two years, maybe three.`,
+  q40: `Not good. That's the honest first reaction and I sat with it a minute before
+writing it.`,
+  q43: `I am becoming a person who finally does the thing he keeps not doing. Which I've
+said before, so perhaps not yet.`,
+};
+
+describe("synthesis smoke test", () => {
+  /**
+   * §38H: the synthesis reasons across every answer with the whole corpus, so it
+   * is a different prompt from the section reflection and needs its own live
+   * check. Runs only when asked, since it is a second paid call.
+   */
+  it.runIf(process.env.SMOKE_SYNTHESIS)(
+    "generates the final synthesis through the real prompt",
+    async () => {
+      const apiKey = process.env.GEMINI_API_KEY_1;
+      if (!apiKey) throw new Error("GEMINI_API_KEY_1 is not set.");
+
+      const model = process.env.SMOKE_MODEL ?? "gemini-3.6-flash";
+
+      const answers = exercise.questions
+        .filter((question) => FULL_ANSWERS[question.id])
+        .map((question) => ({
+          question,
+          section: getSection(question.sectionId)?.title ?? question.sectionId,
+          answer: FULL_ANSWERS[question.id],
+        }));
+
+      const { systemInstruction, prompt } = buildSynthesisPrompt({
+        answers,
+        knowledge: fullKnowledgeBase(),
+      });
+
+      console.log(
+        `\nsmoke:synthesis — ${model}, ${answers.length} answers, ` +
+          `${fullKnowledgeBase().length} knowledge items, ` +
+          `prompt ${prompt.split(/\s+/).length} words\n`,
+      );
+
+      const ai = new GoogleGenAI({ apiKey });
+      const started = Date.now();
+
+      const response = await ai.models.generateContent({
+        model,
+        contents: prompt,
+        config: {
+          systemInstruction,
+          temperature: 0.7,
+          // Mirrors the synthesis call in lib/ai/generate.ts.
+          maxOutputTokens: 16384,
+          thinkingConfig: { thinkingBudget: 1024 },
+          responseMimeType: "application/json",
+          responseSchema: synthesisResponseSchema,
+        },
+      });
+
+      const usage = response.usageMetadata ?? {};
+      console.log(
+        `finishReason=${response.candidates?.[0]?.finishReason ?? "?"} ` +
+          `prompt=${usage.promptTokenCount ?? "?"} output=${usage.candidatesTokenCount ?? "?"} ` +
+          `in ${Date.now() - started} ms\n`,
+      );
+
+      const raw = (response.text ?? "")
+        .trim()
+        .replace(/^```(?:json)?/i, "")
+        .replace(/```$/, "")
+        .trim();
+
+      const parsed = synthesisSchema.parse(JSON.parse(raw));
+
+      console.log("--- final synthesis ---\n");
+      for (const [key, value] of Object.entries(parsed)) {
+        if (Array.isArray(value)) {
+          if (value.length === 0) continue;
+          console.log(`${key.toUpperCase()}:`);
+          value.forEach((entry, i) => console.log(`  ${i + 1}. ${entry}`));
+          console.log();
+        } else if (typeof value === "string" && value.trim()) {
+          console.log(`${key.toUpperCase()}:\n${value}\n`);
+        }
+      }
+
+      const output = JSON.stringify(parsed).toLowerCase();
+      for (const term of ["nietzsche", "zarathustra", "philosopher", "the book"]) {
+        expect(output, `leaked provenance: ${term}`).not.toContain(term);
+      }
+      expect(response.candidates?.[0]?.finishReason).toBe("STOP");
+    },
+    180_000,
+  );
+});
 
 describe("interpretation engine smoke test", () => {
   it("generates a reflection through the real prompt and knowledge base", async () => {

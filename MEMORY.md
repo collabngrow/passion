@@ -1665,9 +1665,13 @@ the line between what is truly your work and what you carry" (`c-extraneous-weig
 tension, and prescribed nothing — closing on examining it being what lets *them* decide, which
 is `p-mirror-not-dictate` holding. 47 knowledge items, 11,393 prompt tokens, ~18s.
 
-§38L's last row — generated output verified free of provenance in practice — is now confirmed
-for the section reflection. The **final synthesis** has still not been generated live; it is a
-different prompt with the whole corpus, and it remains unverified.
+§38L's last row — generated output verified free of provenance in practice — is confirmed for
+both prompts. The **final synthesis** was run live too (`SMOKE_SYNTHESIS=1 npm run smoke:ai`,
+19 answers, whole 115-item corpus, 28,001 prompt tokens, 1,129 output, STOP in ~29s, well
+inside the 16,384 cap). It named the ox, tiger, child, the rope and the spirit of gravity,
+found threads no single section holds — drawing stopping when the second warehouse was taken
+on, empty Saturdays filled at the warehouse — and caught the contradiction between "becoming a
+person who finally does the thing" and a conversation deferred three years. No provenance.
 
 ### The figures were not being named
 
@@ -1732,7 +1736,7 @@ S17 rebuilt the knowledge base and exercise from the source book.
 | Firestore | deny-all rules **live** |
 | Docs | `README.md` complete and corrected against the code (§84, §99) |
 | §88 | walked line by line; every answer NO |
-| §38L | confirmed; section reflection verified live (S17), synthesis not yet |
+| §38L | confirmed; both prompts verified live (S17) |
 
 Prefer `npx <tool>` over `npm run <script>`: the sandbox classifier began blocking `npm run`
 once `deploy:rules` was added to `package.json`.
