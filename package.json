@@ -17,6 +17,7 @@
     "test:watch": "vitest",
     "extract:source": "node scripts/extract-source.mjs",
     "verify:setup": "node scripts/verify-setup.mjs",
+    "reset:participant": "node scripts/reset-participant.mjs",
     "deploy:rules": "firebase deploy --only firestore --project passion-f0aec",
     "smoke:ai": "vitest run --config vitest.smoke.config.ts"
   },

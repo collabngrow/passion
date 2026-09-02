@@ -136,8 +136,11 @@ describe("interpretation engine smoke test", () => {
       config: {
         systemInstruction,
         temperature: 0.7,
+        // Mirrors lib/ai/generate.ts exactly. A smoke test run with a roomier
+        // budget than production passes while the live route truncates its JSON
+        // mid-object, which is the failure this is here to catch.
         maxOutputTokens: 4096,
-        thinkingConfig: { thinkingBudget: 1024 },
+        thinkingConfig: { thinkingBudget: 512 },
         responseMimeType: "application/json",
         responseSchema: interpretationResponseSchema,
       },
@@ -202,5 +205,34 @@ describe("interpretation engine smoke test", () => {
       anchored.some((term) => output.includes(term)),
       "reflection is not anchored in the participant's own detail",
     ).toBe(true);
+
+    /*
+     * The figure the section is built on has to be named, not paraphrased away.
+     * The participant has just answered a part titled "The Ox", so the word is
+     * shared language; speaking only in paraphrase ("a voluntary burden") makes
+     * the reflection vaguer than the question that prompted it.
+     */
+    if (sectionId === "part-3") {
+      expect(output, "the section's figure was never named").toContain("ox");
+    }
+
+    /* Naming the figure is not assigning a rank, and that line must hold. */
+    for (const verdict of ["you are an ox", "you are a tiger", "you are the child"]) {
+      expect(output, `stage verdict: ${verdict}`).not.toContain(verdict);
+    }
+
+    /*
+     * Length is a hard constraint: the live route caps at 4096 output tokens
+     * with 512 of that charged to thinking, and an overrun truncates the JSON
+     * mid-object so the participant receives nothing at all.
+     */
+    const total = [
+      parsed.observation,
+      parsed.interpretation,
+      parsed.tension ?? "",
+      parsed.reflection ?? "",
+    ].join(" ");
+    expect(total.split(/\s+/).length, "reflection is over length").toBeLessThan(400);
+    expect(response.candidates?.[0]?.finishReason).toBe("STOP");
   });
 });

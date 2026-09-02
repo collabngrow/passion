@@ -1669,6 +1669,51 @@ is `p-mirror-not-dictate` holding. 47 knowledge items, 11,393 prompt tokens, ~18
 for the section reflection. The **final synthesis** has still not been generated live; it is a
 different prompt with the whole corpus, and it remains unverified.
 
+### The figures were not being named
+
+Owner asked whether the reflections actually use the ox, tiger and child. They did not. The
+prompt said the images "may" be used where they illuminate, plus a warning against decoration,
+and the model read the whole thing as permission to skip them — producing "chosen voluntarily
+out of reverence", correct but paraphrased.
+
+`systemInstruction()` now lists the six figures with what each one *does*, and directs that
+where a section is built on a figure it must be named. The argument is that this is shared
+language, not jargon: the participant has just answered a part titled "The Ox" and already
+holds the word, so paraphrasing it away makes the reflection vaguer than the question was.
+
+The line that has to hold alongside it: naming a figure is not assigning a stage. "What the ox
+does is kneel, and your answer says nobody asked you to" is an observation; "you are an ox" is
+a verdict and stays forbidden (`ca-no-stage-verdicts`). The prompt states the distinction and
+the smoke test asserts both halves.
+
+### An overrun that would have broken the live route
+
+Adding the figure guidance made the model verbose enough to blow the response budget: the JSON
+came back truncated mid-string at ~18,600 characters. Two causes, both fixed.
+
+The smoke test had been running with `thinkingBudget: 1024` where `generate.ts` uses 512, so it
+was testing a roomier configuration than production — the exact way a smoke test passes while
+the live route truncates. It now mirrors `generate.ts` exactly, and asserts `finishReason` is
+STOP.
+
+And length was a style suggestion the model ignored. `buildInterpretationPrompt` now states it
+as a hard constraint with a 300-word ceiling and per-field sentence counts, and says why: an
+overrun means the participant receives nothing at all, so running long is worse than running
+short. Live output is now ~290-490 tokens against the 4096 cap.
+
+### Firestore cleared
+
+Owner's instruction, with permission given explicitly. Deleted all `answers`,
+`interpretations` and `synthesis` under both participants (12 documents) plus both
+invitations, via `scripts/reset-participant.mjs`. Participant records and Firebase Auth users
+were left intact so the same people sign in unchanged.
+
+Cleared for **both** participants rather than only the owner's, because the id collision is not
+person-specific: a partial clear leaves the same silent mis-attachment for whoever was missed.
+
+`npm run reset:participant` supports `--list`, `--email`/`--uid`, `--all`, `--invitations`,
+`--dry-run` and requires `--yes` to delete anything.
+
 ---
 
 ## Handoff — start here
