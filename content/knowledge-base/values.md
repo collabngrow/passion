@@ -1,188 +1,422 @@
 ---
-id: v-chosen-over-inherited
-title: A value held on examination differs from one merely absorbed
+id: v-own-good-and-evil
+title: Having one's own good and bad
 category: values
-themes: [values, identity, responsibility]
-related: [c-creation-of-values, d-inherited-vs-chosen, t-approval-vs-authenticity]
+themes: [values, valuation, identity, responsibility, chosen-values]
+related: [c-tables-of-value, c-valuing-is-creating, d-inherited-vs-chosen, v-taste-that-says-yes-and-no]
+source: III.55 The Spirit Of Gravity 2
 ---
 
-The framework does not supply a list of correct values. It cares about the relationship between
-a person and the values they hold: whether they have looked at them.
+The framework's test for whether a person has found themselves is a single sentence they must
+be able to say: "this is *my* good and bad." Saying it is what silences the voice that insists on
+"good for all, bad for all".
 
-Two people may both prioritise financial security. For one it is a considered response to
-having watched a parent lose everything; for the other it is an unexamined inheritance that
-produces anxiety without purpose. The value reads identically on the surface and functions
-completely differently in a life.
+The emphasis falls on the possessive rather than on the content. Nothing is claimed about which
+values are correct. What is claimed is that a value nobody has ever affirmed as their own is
+still operating on borrowed authority, however sound it might be.
 
-In interpretation, listen for whether a stated value comes with reasons the participant actually
-owns. Reasons phrased as obligation — "you're supposed to", "that's just what you do", "my
-family expects" — often mark an inherited value that has not yet been examined. This is worth
-naming neutrally, never as a criticism.
+This is the framework's highest ordinary aim for a participant, and it sets the target for
+interpretation. The engine is not looking for whether someone's values are good ones. It is
+looking for whether they have ever been claimed. A participant who can say why a
+conventional commitment is theirs has done the thing; one who names an unconventional
+commitment they have never examined has not. The distinction has nothing to do with how
+unusual the value is.
 
 ===
 
 ---
-id: v-health-as-foundation
-title: Health as the precondition rather than one priority among many
+id: v-nameless-virtue
+title: A virtue truly one's own has no ready name
 category: values
-themes: [health, time, discipline, mortality]
-related: [t-health-vs-priorities, c-finitude, v-time-as-finite]
+themes: [values, honesty, identity, interpretation, chosen-values]
+related: [c-passions-become-virtues, ig-anchor-in-their-language, d-inherited-vs-chosen, v-own-good-and-evil]
+source: I.5 Joys And Passions
 ---
 
-The exercise treats health distinctively. It is not one competing priority; it is the substrate
-that every other priority runs on, and it is the one area where deferral compounds silently and
-is, past a point, irreversible.
+When you have a virtue and it is genuinely your own, you have it in common with no one. The
+moment you name it and pet it, you have its name in common with everybody and have become
+one of the crowd along with your virtue. What is advised instead is startling and very useful:
+better to say "it is unsayable and nameless, that which is pain and sweetness to my soul" — let
+the virtue be too high for the familiarity of names, and if you must speak of it, do not be
+ashamed to stammer.
 
-Participants very often know this and describe health in the language of intention rather than
-practice: they mean to, they used to, they will once work settles. The exercise asks directly
-what a decade of the current pattern would cost, precisely because the cost is invisible
-day-to-day.
+This is the framework's most directly applicable instruction for reading answers, and it runs
+against every instinct toward tidiness. When a participant gives a clean abstract noun for what
+matters to them — freedom, family, integrity, growth, impact — that word is common
+property and carries almost no information about them. When they circle something, restate it
+three ways, apologise for putting it badly, or reach for an odd private example, they are much
+closer to something that is actually theirs.
 
-Two things are worth attending to. First, what the participant says their body needs is usually
-accurate — people generally know, and the gap is not knowledge but action. Second, the stated
-obstacle is frequently time, while the same participant elsewhere describes hours going to
-things they do not value. That pairing is a finding, and it should be surfaced without
-scolding.
+The engine should therefore weight awkward, specific, halting language above fluent
+abstraction, and should quote the stammering rather than the summary. Tidying a participant's
+groping into a well-named value destroys exactly the evidence that made it worth noticing.
 
 ===
 
 ---
-id: v-wealth-as-means
-title: Wealth as a means, and what it is a means to
+id: v-one-virtue
+title: One virtue rather than many
 category: values
-themes: [wealth, freedom, family, contribution, security]
-related: [t-wealth-vs-attention, d-outcome-vs-action, v-relationships-and-presence]
+themes: [values, discipline, direction, purpose, identity]
+related: [v-nameless-virtue, t-virtues-at-war, ig-priorities, c-learning-to-fly]
+source: Prologue 4; I.5 Joys And Passions
 ---
 
-The exercise deliberately does not ask how much money the participant wants. It asks what money
-represents to them — freedom, security, comfort, independence, status, experience, the capacity
-to help, a child's future, a parent's wellbeing, the ability to create.
+Among the things the framework says it loves is a person who does not want too many virtues:
+one virtue is more of a virtue than two, because it is more of a knot for a destiny to hang on.
+Elsewhere the same idea is put as a piece of luck — if you are fortunate you will have one
+virtue and no more, and so you will cross the bridge more easily. Having many is called
+illustrious but a hard lot, and some have gone into the wilderness and destroyed themselves
+from weariness at being the battlefield of their own virtues.
 
-This matters because the underlying want usually has routes to it other than the one being
-pursued, and because a person chasing an amount without knowing what it is for tends not to
-notice when they arrive.
+This is the framework's own argument for concentration, and it is not a productivity claim. The
+reason to want fewer commitments is that commitments compete, and a person made of many
+competing goods spends their strength adjudicating between them.
 
-The answers are frequently revealing in a way the participant did not intend. Someone who
-describes wealth entirely as freedom is telling you they currently feel unfree, and that is a
-finding about their present life more than their finances. Someone who describes it entirely as
-providing for others may not have considered what they want for themselves — worth noting
-gently, without implying selfishness would be an improvement.
+It bears directly on how priorities and commitments should be handled. Where a participant's
+answers support one thing that clearly matters more than the rest, saying so serves them better
+than an even-handed list. Two real priorities are worth more than three, when the third was
+added for symmetry.
 
 ===
 
 ---
-id: v-relationships-and-presence
-title: Relationships, and presence as the thing actually wanted
+id: v-wealth-as-capacity-to-give
+title: Wealth as what flows back out
 category: values
-themes: [relationships, family, time, meaning, mortality]
-related: [t-relationships-vs-time, c-finitude, v-time-as-finite]
+themes: [money, giving, work, contribution, purpose]
+related: [c-bestowing-virtue, c-sick-selfishness, d-pity-vs-gift, v-giving-in-return]
+source: I.22 The Bestowing Virtue 1
 ---
 
-The exercise asks who matters, and then asks a sharper question: what those people would
-actually value from the participant — money, gifts, solutions, or presence, time, a
-conversation, being remembered.
+The framework's position on wealth is neither ascetic nor acquisitive, and it is easy to
+misreport in either direction. Accumulation is defended: the soul strives insatiably for
+treasures precisely because its virtue is insatiable in wanting to bestow. Things are drawn
+toward the person so that they may flow back out again as gifts. That is named a healthy and
+holy selfishness.
 
-Participants almost always answer presence, and very often describe providing something else.
-This gap is one of the most consistent findings the exercise produces, and it is rarely
-hypocrisy. It is usually that providing is legible, achievable and rewarded, while presence is
-none of those things and cannot be delegated or completed.
+What is condemned is not having but the sense that says "all for myself" — the hungry kind
+that measures whoever has abundance and prowls around other people's tables.
 
-The questions about older relatives and about what one's children would say deserve particular
-care in synthesis. They tend to produce the participant's least defended writing, and material
-offered in that register should be handled without flourish. Quote it, note what it shows, and
-do not embellish.
+So the interpretive question about money is never how much a participant wants, and never
+whether wanting it is legitimate. It is whether anything flows outward. A participant who
+describes a large ambition together with what it would let them do for others is describing the
+framework's highest virtue. One who describes security, comparison and accumulation with no
+outward channel is describing something the framework treats as arrested — and that
+observation can be offered without a word of judgement about their finances.
 
 ===
 
 ---
-id: v-creation-and-contribution
-title: Creating something, and its being useful to someone
+id: v-self-love-as-art
+title: Loving oneself, the last and most patient art
 category: values
-themes: [creativity, contribution, work, meaning, impact]
-related: [c-self-mastery, d-busy-vs-creating, t-creation-vs-consumption]
+themes: [self-love, gravity, relationships, solitude, health]
+related: [c-spirit-of-gravity, c-furthest-love, t-crowding-toward-others, ca-not-self-hatred]
+source: III.55 The Spirit Of Gravity 2
 ---
 
-The framework treats making things as central rather than optional — a business, a body of
-work, music, a community, a family, a solved problem. The exercise devotes several questions to
-it and asks not only what the participant wants to create but why creating matters to them.
+Whoever would become light and be a bird must love themselves — and immediately the
+framework guards the claim against sentimentality. Not the love of the sick and infected, in
+whom even self-love stinks; a wholesome and healthy love, so that a person can *endure to be
+with themselves and not go roving about*.
 
-Two distinct motives usually appear, and they should not be collapsed. One is expression: the
-work wants out, independent of reception. The other is contribution: the work is for someone,
-and its value lies in being useful. Most participants have both in some proportion, and knowing
-their proportion tells you a good deal about what work will satisfy them.
+Two things make this usable. First, the standard is behavioural rather than emotional: the test
+of self-love is whether a person can be in their own company. Second, it is called of all arts the
+finest, subtlest, last and most patient — explicitly not a commandment for today and tomorrow.
+Its own treasure-pit is said to be the last one anybody excavates.
 
-Pay attention to what the participant returns to when nobody asks them to. The exercise probes
-this deliberately, because unpaid, unprompted, repeated attention is a more reliable signal of
-what someone is drawn to than any stated ambition.
+The framework then makes a connection worth carrying into the relationships material: the
+roving about that follows from not loving oneself is what christens itself brotherly love. A
+participant who is constantly available to everyone and never alone may be describing
+generosity, and may be describing this. The two are distinguished by whether solitude is
+tolerable, not by how much they give.
 
 ===
 
 ---
-id: v-time-as-finite
-title: Time as the one unrecoverable resource
+id: v-commanding-oneself
+title: Governing oneself, at the cost of being one's own judge
 category: values
-themes: [time, mortality, discipline, action]
-related: [c-finitude, c-drift-versus-intention, t-health-vs-priorities]
+themes: [self-command, self-obedience, discipline, responsibility, action]
+related: [c-self-command, d-command-vs-obedience, t-resolution-without-obedience, v-own-good-and-evil]
+source: II.34 Self-Surpassing; I.17 The Way Of The Creating One
 ---
 
-Money can be recovered, reputation rebuilt, health partly restored. Time cannot. The framework
-treats how a person spends their days as the most honest available statement of what they
-value — more honest than what they say they value, because it is not subject to self-flattery.
+The question put to anyone who wants to go their own way is exact: can you give yourself your
+own bad and good, and set up your own will as a law over you? Can you be judge for yourself,
+and the avenger of your own law? And then the warning — being alone with the judge and
+avenger of one's own law is called terrible.
 
-This is why the exercise asks where time actually goes before asking what the participant would
-prioritise. The order is deliberate: the description of a normal week is evidence, and the
-statement of priorities is aspiration, and comparing them is the point.
+The framework never presents self-direction as liberation from difficulty. Commanding is
+harder than obeying, and whoever commands themselves must become the judge, the avenger
+*and* the victim of their law. That is the honest price, and it is stated plainly.
 
-Where the two diverge, resist the assumption of laziness or bad faith. Time usually leaks into
-things that were once chosen and never revisited, or into obligations that would cost something
-real to refuse. Naming where it goes is useful; assuming the participant simply lacks discipline
-is usually wrong and always unhelpful.
+This matters for tone as much as content. When a participant describes wanting to run their
+own life, their own business, their own terms, the framework's response is not encouragement.
+It is recognition that they are taking on the hardest available arrangement — and where their
+answers show them already paying that price, saying so is worth more than approval.
 
 ===
 
 ---
-id: v-courage-and-voice
-title: Courage, particularly the courage to speak
+id: v-danger-as-calling
+title: Danger made one's calling
 category: values
-themes: [courage, relationships, identity, action]
-related: [c-self-overcoming, t-approval-vs-authenticity, d-comfort-vs-safety]
+themes: [danger, courage, crossing, work, purpose]
+related: [c-the-rope, c-last-man, t-comfort-against-appetite, t-halting-midway]
+source: Prologue 6; III.46 The Vision And The Enigma
 ---
 
-The exercise asks specifically where the participant stayed silent when they knew they should
-have spoken, what the silence cost, and what they wish they had said. This is treated as a
-first-class question rather than an aside, because unspoken things accumulate.
+The framework's clearest statement of this comes at a deathbed. A man who walked a rope for
+a living has fallen and is dying; he says he is not much more than an animal taught to dance by
+blows and poor food. The reply is a correction and a defence: "you have made danger your
+calling; there is nothing contemptible in that. Now you perish by your calling, and so I will
+bury you with my own hands."
 
-Silence has a characteristic set of reasons: avoiding conflict, protecting someone else's
-feelings, not wanting to seem difficult, hoping the situation would resolve itself, judging the
-moment wrong and then never finding a right one. None of these are contemptible. All of them
-compound.
+The value being asserted is not recklessness. It is that a life organised around something
+genuinely at risk is honoured, including when it costs the person everything — and that the
+alternative, a life arranged so that nothing can hurt, is the framework's portrait of
+contemptibility.
 
-The cost is usually paid twice — once in the situation that went unaddressed, and again in the
-participant's relationship to themselves. Where someone describes several such episodes, the
-pattern is worth naming, along with what they say they wish they had said, which is often a
-clearer statement of their values than anything they offer when asked directly.
+Courage elsewhere is described as the best slayer, the courage that *attacks*, because in every
+attack there is a sound of triumph. Where a participant describes having chosen the harder of
+two available lives, the framework's response is recognition rather than concern — and where
+they describe having chosen the safer one and quietly regretting it, that regret is treated as
+sound information rather than ingratitude.
 
 ===
 
 ---
-id: v-responsibility
-title: Responsibility as authorship rather than blame
+id: v-true-to-the-earth
+title: Remaining true to the earth
 category: values
-themes: [responsibility, action, identity, becoming]
-related: [d-reaction-vs-choice, c-self-overcoming, p-toward-action]
+themes: [body, health, work, action, honesty, meaning]
+related: [c-body-as-great-reason, c-despising-the-body, d-said-vs-done, ig-behaviour-over-declaration]
+source: Prologue 3; I.22 The Bestowing Virtue 2
 ---
 
-Responsibility here means treating one's life as authored rather than merely befallen. It is not
-the claim that everything is one's fault, and it must never be delivered as one.
+"Remain true to the earth, and do not believe those who speak to you of hopes beyond it." The
+framework repeats the instruction when it turns to virtue: lead the flown-away virtue back to
+the earth — back to body and life — so that it may give the earth a human meaning. Much
+virtue, it says, has flown away.
 
-Circumstances are real. Constraints of money, obligation, illness and other people's needs are
-not illusions to be dissolved by attitude, and an interpretation that implies otherwise is both
-false and cruel. The framework's claim is narrower and more defensible: within whatever room
-exists, the choice of what to do with it belongs to the participant.
+The target is any value that has floated free of anything a person actually does. It is not an
+argument against belief, and reading it as one would miss its use.
 
-The distinction shows up clearly in language. "There's no time" locates the matter outside the
-speaker; "I haven't been willing to give up the evening" locates it inside. Both may describe
-the same week. The second is harder to say and opens a door the first does not.
+Applied to answers, it becomes a test that is easy to run. A commitment a participant holds
+which has no visible landing point in their week is a flown-away virtue. This is not hypocrisy
+and should never be presented as such — the framework's own diagnosis is that virtues drift
+upward on their own. The useful move is to put the stated value and the actual week beside
+each other and let the participant look at both, which is also what the framework means by
+bringing it back to earth.
 
-Where a participant already speaks in the second register, that is a strength and should be
-named as one — it is considerably rarer than it sounds.
+===
+
+---
+id: v-suppressed-truths
+title: What is not said turns poisonous
+category: values
+themes: [honesty, silence, courage, relationships, contradiction]
+related: [c-self-surpassing, v-taste-that-says-yes-and-no, ig-dissatisfaction-is-material, t-good-people-do-not-listen-to-themselves]
+source: II.34 Self-Surpassing; III.56 Old And New Tables 7
+---
+
+"Let us speak thereof, even though it be bad. To be silent is worse; all suppressed truths
+become poisonous." The framework treats unsaid things as actively harmful rather than merely
+absent, and it is specific about who suffers: the person holding the silence.
+
+A harder passage sharpens this into a claim about agreeable people. Good people, it says, never
+speak the truth — being good in that way is called a sickness of the spirit. They yield, they
+submit, their heart repeats and their soul obeys; and whoever obeys *does not listen to
+themselves*. The failure is not that they deceive others. It is that they have stopped hearing
+what they think.
+
+This gives the engine a way to read a participant who reports a silence — a thing unsaid to a
+parent, a partner, an employer. The framework's interest is not in whether they should have
+spoken, which is not the engine's business. It is that the silence has a cost paid inwardly, and
+that a person who has been agreeable for long enough may genuinely not know their own
+position any more.
+
+===
+
+---
+id: v-giving-in-return
+title: Not wanting to have life gratis
+category: values
+themes: [giving, contribution, responsibility, work, purpose]
+related: [c-bestowing-virtue, v-wealth-as-capacity-to-give, v-receiving-well, d-pity-vs-gift]
+source: III.56 Old And New Tables 5
+---
+
+The disposition the framework calls noble is described by what it refuses: to have anything
+gratis, least of all life. Those to whom life has given itself are said to be always considering
+what they can best give in return, and the formula offered is "what life promises us, that
+promise will we keep — to life."
+
+A sharp corollary follows: one should not wish to enjoy where one does not contribute to the
+enjoyment.
+
+This supplies the framework's account of contribution without any appeal to duty or altruism.
+Giving is not owed to other people; it is the response of someone who noticed they were given
+something. That distinction is worth preserving in a reflection, because the two produce very
+different writing in participants. Someone contributing out of obligation describes it as a
+weight; someone contributing out of this describes it as a payment they wanted to make. Both
+are worth naming, and they are not the same thing.
+
+===
+
+---
+id: v-enjoying-oneself
+title: Having enjoyed oneself too little
+category: values
+themes: [play, appetite, health, relationships, comfort]
+related: [c-the-child, d-pity-vs-gift, v-self-love-as-art, t-crowding-toward-others]
+source: II.25 The Pitiful
+---
+
+One of the framework's most surprising claims is stated as a single accusation: since humanity
+came into being, people have enjoyed themselves too little — *that alone* is our original sin.
+And the consequence given is not private but social: when we learn to enjoy ourselves better,
+we best unlearn giving pain to others and contriving it.
+
+The framework also reports the experiment behind it. "I have done this and that for the
+afflicted; but something better did I always seem to do when I had learned to enjoy myself
+better."
+
+This inverts the usual relation between self-denial and virtue, and it should be allowed to. A
+participant describing a life of service in which nothing is for them is not, in framework terms,
+demonstrating a strength. Enjoyment is not the reward that follows the work here; it is the
+precondition for the work being any good. Where a participant's answers show real
+deprivation of pleasure alongside heavy obligation to others, those two facts belong side by
+side.
+
+===
+
+---
+id: v-whither-not-whence
+title: Honour in where one is going
+category: values
+themes: [direction, becoming, family, inherited-values, identity]
+related: [c-tables-of-value, d-inherited-vs-chosen, c-self-surpassing, ig-honour-the-crossing]
+source: III.56 Old And New Tables 12
+---
+
+"Let it not be your honour henceforth whence you come, but whither you go. Your will, and
+your feet that seek to surpass you — let these be your new honour." The framework proposes
+replacing origin with direction as the thing a person is judged by, including by themselves.
+
+It is equally pointed about the opposite habit: whoever belongs to the crowd has thoughts that
+run back to their grandfather, and with the grandfather time stops.
+
+For interpretation this is most useful with participants who explain themselves largely through
+where they came from — their family's trade, their class, their upbringing, what was and was
+not possible for people like them. None of that is untrue and none of it should be dismissed.
+But the framework's move is to ask what direction those same answers show, and to give that
+the weight the participant is giving their origins. Often they have already described a direction
+somewhere else in their answers without connecting it, and putting the two together is the
+whole observation.
+
+===
+
+---
+id: v-receiving-well
+title: Knowing how to accept
+category: values
+themes: [giving, relationships, friendship, love, honesty]
+related: [c-bestowing-virtue, t-bestowing-needs-receiving, d-pity-vs-gift, v-giving-in-return]
+source: II.25 The Pitiful; I.16 Neighbour-Love
+---
+
+The framework treats accepting as a skill, and a scarce one. "Be shy in accepting. Distinguish
+by accepting" is the advice given to those who have nothing to bestow — accepting is framed
+as itself a way of honouring the giver. And to those who would be loved by overflowing
+hearts: one must know how to be a sponge.
+
+The reason this is not a minor point is given elsewhere and it is unsparing. Great obligations do
+not make people grateful but vengeful, and a small kindness that is not forgotten becomes a
+gnawing worm. Helping the sufferer is said to wound their pride.
+
+This is directly usable when a participant describes giving a great deal and receiving little.
+The framework's reading is not that they should ask for more, which would be advice. It is
+that a person who cannot accept has made themselves difficult to give to, and that the
+imbalance they are describing may be one they are maintaining. That is a claim their own
+answers will either support or not, and it must only be offered where they do.
+
+===
+
+---
+id: v-taste-that-says-yes-and-no
+title: A taste that can say I, and Yes, and No
+category: values
+themes: [values, honesty, refusal, affirmation, identity]
+related: [v-own-good-and-evil, v-suppressed-truths, d-wish-vs-will, c-the-tiger]
+source: III.55 The Spirit Of Gravity 2
+---
+
+The framework declares an open dislike of those who call everything good and this world the
+best of all — the all-satisfied. Being able to taste everything is called not the best taste. What
+is honoured instead is the refractory, fastidious tongue that has learned to say "I" and "Yes"
+and "No". To chew and digest everything is named plainly as swinish, and always saying yes is
+what the donkey has learned.
+
+The value being asserted is discrimination — having preferences sharp enough that some things
+are refused. It sits directly behind the second transformation: a No is not an obstacle to
+affirmation but a component of it, because a Yes that was never able to be a No means nothing.
+
+For interpretation this gives a way to read agreeableness that avoids both flattery and
+criticism. A participant whose answers accommodate everything and refuse nothing has not
+described a generous character; they have described someone whose Yes carries no information.
+Where their answers do contain a real refusal, that refusal is one of the most informative things
+they have written, and worth returning to them.
+
+===
+
+---
+id: v-creators-are-hard
+title: All creators are hard
+category: values
+themes: [creation, courage, work, love, discipline]
+related: [c-self-surpassing, d-pity-vs-gift, v-danger-as-calling, t-creating-then-outgrowing]
+source: II.25 The Pitiful; II.34 Self-Surpassing
+---
+
+"All great love is above all its pity: for it seeks to *create* what is loved." And then, without
+softening: all creators are hard.
+
+The hardness is aimed in a specific direction, which is what keeps this from being a licence for
+cruelty. It is the refusal to leave what one loves as it is out of tenderness for its present state.
+The same logic appears where creation is discussed generally: whoever must be a creator in
+good and bad has first to be a destroyer and break values in pieces.
+
+This is the framework's account of why loving something well can look unkind. A participant
+who holds a high standard for their child, their work, or themselves may be describing this
+rather than harshness — and one who cannot bear to disappoint anyone may be describing a
+love that has settled for preserving things. Neither reading should be applied without evidence,
+but the distinction is available and it is not the one people usually make.
+
+===
+
+---
+id: v-courage-that-attacks
+title: Courage as the best slayer
+category: values
+themes: [courage, danger, fear, action, gravity]
+related: [c-spirit-of-gravity, c-recurrence, v-danger-as-calling, t-ambition-and-the-voice-that-mocks]
+source: III.46 The Vision And The Enigma
+---
+
+Courage is called the best slayer — the courage that *attacks*, because in every attack there is
+a sound of triumph. It is credited with killing dizziness at the edge of chasms, and with killing
+fellow-suffering, which is called the deepest chasm of all. And it is credited with killing death
+itself, because it says: "was *that* life? Well then, once more."
+
+The definition is worth noticing for what it excludes. Courage here is not endurance and not
+composure under difficulty. It is the move toward the thing — the decision to stand still and
+say to the weight on one's shoulder: "you, or I."
+
+For interpretation this gives a usable test for whether a participant's difficulty is being faced or
+managed. Someone who has organised their life around a fear so that it never has to be
+encountered is described by the framework as being carried by the dwarf rather than
+confronting it. That is worth showing gently, and only where they have supplied the evidence
+themselves.

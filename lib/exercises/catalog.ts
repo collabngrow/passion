@@ -35,9 +35,9 @@ export const exerciseCatalog: ExerciseCatalogEntry[] = [
     id: "reflection",
     title: "The Reflection Exercise",
     description:
-      "Forty-three questions across fourteen parts, on what matters to you, " +
-      "what you want to create, and who you are choosing to become. You get an " +
-      "analysis after each part, and a full reflection at the end.",
+      "Forty-three questions across thirteen parts, on what you carry, what you " +
+      "have refused, and what you would make. You get a reflection after each " +
+      "part, and a full one at the end.",
     href: "/journey",
     available: true,
   },

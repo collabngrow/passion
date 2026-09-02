@@ -3211,6 +3211,31 @@ The framework should operate invisibly as the intellectual/interpretive foundati
 
 The participant should experience the output as a thoughtful interpretation of their own answers.
 
+## Amendment: the images are permitted, the provenance is not
+
+The rule above forbids identifying the *source*. It does not forbid the source's
+**images**, and the exercise now uses several of them directly — the one who carries and
+asks for more weight, the one who refuses what it once held sacred, the child who begins
+without needing a reason, the rope stretched over a drop, the voice explaining why every
+ambition will fall, the comfortable life that has quietly stopped wanting anything.
+
+These are shared language between the exercise and the reflection, so the interpretation
+engine may use them where they genuinely illuminate what a participant wrote.
+
+Everything in the list above stays forbidden without exception: the name of the source,
+that it is a book, its author, its chapters, its century, its tradition, and any citation
+or bibliographic gesture. The distinction is between an image, which belongs to the
+experience, and a provenance, which never appears anywhere.
+
+Two enforcement points follow from this. The knowledge base still contains no identifying
+term (`lib/ai/retrieval.test.ts` asserts it against the built corpus). And each knowledge
+item's `source:` field — which does name a passage — is validated at build time and then
+deliberately dropped by `scripts/build-kb.mjs`, so no string capable of identifying the
+source reaches the runtime at all.
+
+An image used because it is vivid rather than because it fits the participant's answers is
+decoration, and decoration arriving in place of an observation is what §38G forbids.
+
 Bad:
 
 > According to the book, your answer demonstrates...

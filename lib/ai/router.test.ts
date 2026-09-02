@@ -176,11 +176,27 @@ describe("output validation (§38N)", () => {
     }
   });
 
+  /** Every prose category, so only the field under test is doing the failing. */
+  const wholeSynthesis = {
+    whatYouCarry: "x",
+    whatYouHaveRefused: "x",
+    whatYouWouldMake: "x",
+    comfortableLife: "x",
+    theCrossing: "x",
+    body: "x",
+    inheritedValues: "x",
+    money: "x",
+    thoseYouWalkWith: "x",
+    whatYouGive: "x",
+    whatWeighsOnYou: "x",
+    strengths: "x",
+    contradictions: "x",
+    yourOwnGoodAndBad: "x",
+  };
+
   it("requires the synthesis to carry priorities and commitments", () => {
     const missing = JSON.stringify({
-      coreValues: "x",
-      sourcesOfMeaning: "x",
-      personalPhilosophy: "x",
+      ...wholeSynthesis,
       threePriorities: [],
       thirtyDayCommitments: ["one"],
     });
@@ -191,25 +207,21 @@ describe("output validation (§38N)", () => {
 
   it("caps priorities and commitments at three", () => {
     const tooMany = JSON.stringify({
-      coreValues: "x",
-      sourcesOfMeaning: "x",
-      relationships: "x",
-      health: "x",
-      wealth: "x",
-      creativity: "x",
-      contribution: "x",
-      strengths: "x",
-      challenges: "x",
-      contradictions: "x",
-      oldSelf: "x",
-      emergingSelf: "x",
-      philosophicalLens: "x",
-      personalPhilosophy: "x",
+      ...wholeSynthesis,
       threePriorities: ["a", "b", "c", "d"],
       thirtyDayCommitments: ["a"],
     });
     expect(() => parseJsonResponse(tooMany, synthesisSchema)).toThrow(
       InvalidAiOutputError,
     );
+  });
+
+  it("accepts a complete synthesis", () => {
+    const valid = JSON.stringify({
+      ...wholeSynthesis,
+      threePriorities: ["a", "b"],
+      thirtyDayCommitments: ["a"],
+    });
+    expect(() => parseJsonResponse(valid, synthesisSchema)).not.toThrow();
   });
 });

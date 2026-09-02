@@ -1,1162 +1,672 @@
-# Self-Discovery Exercise 1
+# The Reflection Exercise
 
 ## Purpose
 
-This exercise is a guided journey of self-discovery inspired by  ideas of self-overcoming, values, creation, responsibility, freedom and becoming.
+This exercise asks you to look at your own life in a particular order: what you have made
+comfortable, what you carry, what you have refused, and what you would make.
 
-The purpose is not to diagnose, judge or assign a personality type.
+It is not a test and it does not produce a type, a score or a diagnosis. Nothing here is
+graded. The questions are worth answering honestly rather than well, and a short true answer
+is worth more than a long careful one.
 
-The purpose is to help the participant examine:
+Some of the questions use images — an ox that kneels to be loaded, a tiger that refuses, a
+child who begins, a rope stretched over a drop. They are there because they are more precise
+than the plain words would be, not to be decoded. Take what is useful from them and ignore
+the rest.
 
-* How they currently live
-* What they value
-* What they want to become
-* Where they spend their time
-* What gives their life meaning
-* What they avoid
-* What they would change
-* What they want to create
-* How they relate to health, wealth and relationships
-* What kind of person they want to become
+You will get a reflection after each part, and a full one at the end. All of it is built from
+what you write, so the exercise is worth exactly as much as you put into it.
 
-The AI interpretation should use the participant's own answers as its primary evidence.
+Write in your own words. Stammer if you need to. The awkward sentence you nearly deleted is
+usually the one worth keeping.
 
 ---
 
-# PART 1 — THE LIFE YOU WOULD CHOOSE
+# PART 1 — THE COMFORTABLE LIFE
 
-## Question 1 — Your Dream Year
+## Question 1 — What Have You Made Safe?
 
-Imagine that the coming year becomes the kind of year you would genuinely want to live.
+There is a way of arranging a life so that nothing in it can really hurt you.
 
-What would make it a great year?
+The work is steady but not consuming. The relationships are pleasant and not demanding. The
+risks are calculated ones. Nothing is on fire, and nothing is at stake either.
+
+Where have you done this?
 
 Think about:
 
-* The impact you make
-* How you use your time
-* Your work
-* Your health
-* Your wealth
-* Your relationships
-* Your family
-* Your creativity
-* Your contribution to others
-* Events or experiences you create
+* Work you have made survivable rather than meaningful
+* Conversations you keep at a comfortable depth
+* Decisions you have deferred so long that they stopped being decisions
+* Places where you have chosen the option that could not go badly
 
-Describe your ideal year in your own words.
+Be specific about one or two, rather than general about all of them.
 
 ---
 
-## Question 2 — What Would Make It A Good Life?
+## Question 2 — Your Small Pleasures
 
-Imagine looking back at your entire life.
+Describe what you actually enjoy in an ordinary week.
 
-What would need to have happened for you to say:
+Not what you would like to enjoy, and not what sounds worth enjoying. The real ones — the
+things you look forward to on a Tuesday.
 
-**"I lived a good life."**
+Then answer this: are they enough?
+
+There is no correct answer. Some people's small pleasures are genuinely sufficient and the
+question is a formality. For others they have quietly replaced something larger. Only you can
+say which.
+
+---
+
+## Question 3 — What Have You Stopped Wanting?
+
+Somewhere between twenty and now, most people quietly take something off the list.
+
+An ambition that came to seem unrealistic. A place they were going to live. Work they were
+going to do. A version of themselves they were going to become. It is rarely abandoned in one
+decision — it just stops being mentioned.
+
+What is yours?
+
+And, if you can: when did you last say it out loud to anyone?
+
+---
+
+# PART 2 — THE ROPE
+
+## Question 4 — What Are You In The Middle Of?
+
+Picture a rope stretched over a drop, and someone partway across.
+
+That is a reasonable picture of most people most of the time. Not settled, not arrived —
+between one thing and another, with the crossing not yet finished.
+
+What are you in the middle of right now?
+
+It might be a change you have started and not completed, a decision half made, a version of
+yourself you are partly into and partly out of. Describe where you actually are, rather than
+where you would like to have got to.
+
+---
+
+## Question 5 — What Are You Waiting For?
+
+Most people are waiting for something before they do the thing they intend to do.
+
+More money. More certainty. The children older. The current project finished. The right
+moment, which will be recognisable when it arrives.
+
+What are you waiting for, and what is it holding up?
+
+Then the harder half: is the wait a real condition, or has it become the arrangement?
+
+---
+
+## Question 6 — What Would It Cost To Turn Back?
+
+Standing still on a rope is not the same as safety, and going back across is not free either.
+
+If you abandoned the crossing you described — returned to how things were before you started,
+and made your peace with it — what would that cost you?
+
+Answer plainly. Sometimes turning back is the right move and the cost is bearable. Sometimes
+naming the cost is what makes it obvious that you are going to keep going.
+
+---
+
+# PART 3 — THE OX
+
+## Question 7 — What Did You Take On Yourself?
+
+The first figure in this exercise is an ox that kneels down and asks to be loaded — and then
+asks whether there is anything heavier.
+
+That is not a picture of someone being oppressed. It is a picture of someone volunteering. The
+weight is real, and they took it up themselves, and they were not wrong to.
+
+What have you taken on yourself?
 
 Think about:
 
-* Relationships
-* Family
-* Friends
-* Creativity
-* Work
-* Money
-* Contribution
-* People you helped
-* Things you created
-* Experiences you shared
-* The people you cared for
+* Responsibilities nobody actually assigned to you
+* Standards you hold yourself to that nobody else would enforce
+* People whose difficulties you decided were yours to carry
+* Work you took on because you could, and because someone had to
 
-What would make your life feel well spent?
+Leave out what was genuinely imposed on you — that comes later. This question is only about
+what you picked up.
 
 ---
 
-# PART 2 — THE LIFE YOU WOULD CHANGE
+## Question 8 — What Was It You Revered?
 
-## Question 3 — If You Could Live It Again
+Nobody kneels for nothing.
 
-If you had the opportunity to live your entire life again, what would you do differently?
+Behind each of those weights there was usually something you respected enough to accept the
+cost: a person, a standard, a promise, an idea of the kind of person you meant to be.
 
-Do not focus only on major events.
-
-Think about:
-
-* Things you said
-* Things you did not say
-* Opportunities you took
-* Opportunities you missed
-* Decisions you delayed
-* Relationships
-* Work
-* Money
-* Health
-* Courage
-* Priorities
-
-What would you change?
+Take one or two of the burdens you just described. What was underneath them?
 
 ---
 
-## Question 4 — Where Did You Stay Silent?
+## Question 9 — Which Of It Is Yours?
 
-Think about situations where you knew you should have spoken up but didn't.
+Now the question this part exists for.
 
-What happened?
+Some of what you carry is genuinely yours — it came out of what you value, and you would
+choose it again. Some of it you picked up early, from a family, a trade, a place, a
+religion, and you have never actually examined it. Both feel identical from the inside. That
+is the difficulty.
 
-Why did you remain quiet?
+Go back through what you listed. Which of it is yours?
 
-What did that silence cost you?
-
-What do you wish you had said?
-
-Look for situations where you:
-
-* Accepted something you disagreed with
-* Avoided conflict
-* Put someone else's needs ahead of your own
-* Delayed an uncomfortable conversation
-* Allowed an issue to remain unresolved
+Take your time with this one. It is the question most people find they cannot answer
+immediately, and the hesitation is worth noticing.
 
 ---
 
-## Question 5 — Your Recurring Weakness
+## Question 10 — What Would You Carry Again?
 
-What do you recognise as one of your recurring weaknesses?
+Knowing what it has cost you: which of these weights would you pick up a second time?
 
-It could involve:
-
-* Procrastination
-* Avoidance
-* Lack of discipline
-* Overthinking
-* Fear
-* Money
-* Health
-* Relationships
-* Communication
-* Taking action
-* Prioritisation
-
-Don't choose what sounds impressive.
-
-Choose something you genuinely recognise in yourself.
+And is there anything on the list you now realise you have been carrying for someone who never
+asked, or who is no longer there?
 
 ---
 
-# PART 3 — THE PERSON YOU WANT TO BECOME
+# PART 4 — THE TIGER
 
-## Question 6 — Someone You Could Be Proud Of
+## Question 11 — What Have You Already Refused?
 
-Imagine becoming the person you would genuinely be proud to be.
+The second figure is a tiger, and what it does is say no.
 
-Who is that person?
+Not to an enemy — to something it once held sacred. That is what makes the refusal cost
+something. Walking away from what you always resented is just escape. This is different.
 
-Describe them.
+Where in your life have you said: enough, I will do this my way?
 
-Think about:
-
-* Character
-* Courage
-* Discipline
-* Relationships
-* Health
-* Wealth
-* Creativity
-* Contribution
-* Leadership
-* How they treat people
-* How they use their time
-
-Complete this thought:
-
-**"I would be proud of myself if I became someone who..."**
+Describe what it was, and what it had meant to you before.
 
 ---
 
-## Question 7 — What Is Holding You Back?
+## Question 12 — The "Thou Shalt" You Still Obey
 
-What is the biggest thing currently preventing you from becoming that person?
+Some rules never announce themselves. They are simply how things are done — by people like
+you, in your family, in your work, at your age.
 
-Be honest.
+Which of them are you still obeying without having decided to?
 
-It may be:
+Listen for the phrases that come out in the passive: one doesn't, it isn't done, you just do
+it, that's not realistic, what would people think.
 
-* Lack of focus
-* Fear
-* Lack of discipline
-* Lack of money
-* Lack of time
-* Indecision
-* Habits
-* Other people's expectations
-* Staying comfortable
-* Overthinking
-* Not taking action
+Name one you suspect you could refuse.
+
+---
+
+## Question 13 — What Did It Cost You?
+
+For the refusal you described in Question 11 — what did it take from you?
+
+Relationships, standing, money, certainty, someone's good opinion, your own sense of being a
+good person. Refusals are rarely free, and the cost is usually the reason people do not make
+them.
+
+If it cost you nothing, it may be worth asking whether it was a refusal or a departure.
+
+---
+
+## Question 14 — Free For What?
+
+This is the question the whole part is built around.
+
+It is easy to say what you have got free of. It is much harder to say what the freedom is for.
+People sometimes throw away something that was holding them together along with the thing
+that was constraining them.
+
+So: what is the space you have cleared actually for?
+
+If you do not know, say that. Not knowing is a real and common answer, and it is more useful
+here than an invented one.
+
+---
+
+# PART 5 — THE CHILD
+
+## Question 15 — What Would You Make?
+
+The third figure is a child — not because creating is childish, but because a child begins
+things without needing permission or a reason.
+
+What do you want to make?
+
+It does not have to be a company or a book. It might be a way of working, a place, a family,
+a piece of knowledge, a habit in other people, a thing that did not exist before you.
+
+---
+
+## Question 16 — If It Needed No Justification
+
+Suppose you never had to explain it. Not to a partner, not to a parent, not to anyone who
+would ask what it was for or whether it would work.
+
+What would you do?
+
+Notice whether you find yourself justifying it anyway as you write. That reflex is worth
+seeing.
+
+---
+
+## Question 17 — What Have You Forgotten How To Do?
+
+Beginning requires forgetting some of what you know. Experience is useful and it also tells
+you, very reasonably, all the ways a thing will fail.
+
+What did you used to do easily that you now overthink?
+
+It might be writing, playing, speaking without rehearsing, being bad at something in public,
+starting before you were ready.
+
+---
+
+## Question 18 — What Begins With You?
+
+Some things in your life were handed to you and you continue them. Some things start with you
+and did not exist before.
+
+What is in the second category?
+
+If the answer is nothing yet, write that, and then write what could be.
+
+---
+
+# PART 6 — THE BODY
+
+## Question 19 — What Does Your Body Already Know?
+
+You almost certainly know what your body needs. Most people can list it accurately in under a
+minute.
+
+Do that. Sleep, movement, food, drink, rest, attention to something you have been ignoring.
+
+Then say how long you have known.
+
+---
+
+## Question 20 — What Have You Been Taking From It?
+
+When something has to give, the body is often what gives — because it is the only thing that
+does not complain immediately and nobody else notices.
+
+What have you been taking from your body in order to pay for something else?
+
+And what is the something else?
+
+---
+
+## Question 21 — What Went Quiet At The Same Time?
+
+Look at when you started letting your health go.
+
+What else changed around then? Was there something you had been making, building or working
+towards that stopped or went quiet in the same period?
+
+There may be no connection. But look before you answer.
+
+---
+
+# PART 7 — GOALS YOU DID NOT CHOOSE
+
+## Question 22 — Whose Table Are You Living By?
+
+Every family, trade and community keeps a list of what counts as a good life. It is rarely
+written down and it is absorbed early, usually before anyone is old enough to disagree.
+
+What was on yours?
+
+Think about what earned approval where you grew up, and what was quietly regarded as a
+failure.
+
+---
+
+## Question 23 — What Did They Find Hard?
+
+Here is a way of reading that list.
+
+A group tends to call good whatever it found hardest. Families who lived through scarcity make
+thrift into a virtue. Trades that depend on trust make discretion sacred. What was difficult
+becomes what is holy.
+
+Look at the values you just listed. What was the difficulty each of them was an answer to?
+
+And is that still your difficulty?
+
+---
+
+## Question 24 — What Is Money For?
+
+Describe what money actually means to you — not what you would say it means.
+
+Then answer specifically: what does it flow out into?
+
+Some people accumulate in order to give, build, make or protect something. For others it
+accumulates and stops there, and the wanting turns into comparison with people who have more.
+Both are common. Which is yours?
+
+---
+
+## Question 25 — What Would You Keep?
+
+Go back over the values you inherited.
+
+Having looked at where they came from, which of them would you now choose on purpose?
+
+The point is not to discard what you were given. Much of it is likely worth keeping. The point
+is that a value you have examined and kept belongs to you in a way an unexamined one does not.
+
+---
+
+# PART 8 — THOSE YOU WALK WITH
+
+## Question 26 — Who Makes A Demand On You?
+
+There is a difference between the people who are near you and the people who require
+something of who you are becoming.
+
+The second kind will disagree with you, hold you to something, refuse to accept your easier
+account of yourself. They are rarer, and they are not always the closest.
+
+Who are yours? If nobody, say so.
+
+---
+
+## Question 27 — What Do You Want From Them?
+
+What do you most want from the people close to you — to be understood, admired, forgiven,
+relied on, left alone, chosen?
+
+Then look at your answer and ask whether you give it to yourself.
+
+What we want from other people usually points at something we cannot yet supply on our own.
+That is ordinary, not a failing.
+
+---
+
+## Question 28 — Where Does Your Help Leave People Smaller?
+
+You probably help people. Consider how.
+
+Some help relieves someone's difficulty and leaves them slightly more dependent and slightly
+diminished. Other help adds to what a person can do, and they need you less afterwards.
+
+Where does yours fall? Be honest about at least one relationship where it is the first kind.
+
+---
+
+## Question 29 — Can You Be Alone?
+
+Not whether you are alone — whether you can be.
+
+Describe what happens when you have an evening, a weekend, a stretch of time with nobody in
+it and nothing required of you.
+
+Some people find their own company tolerable and some reach for anyone. What actually happens
+for you?
+
+---
+
+# PART 9 — WHAT WEIGHS YOU DOWN
+
+## Question 30 — The Voice That Says It Will Not Work
+
+Most people carry something that sits on their shoulder while they climb and explains,
+reasonably and without raising its voice, why the thing they want will not happen.
+
+It rarely sounds like fear. It usually sounds like realism.
+
+Write down what it says to you, in its own words, as exactly as you can.
+
+---
+
+## Question 31 — What Must You Deal With Yourself?
+
+Some difficulties can be shared, delegated, or handled with help.
+
+Others cannot. There are things nobody can pull out of you — somebody else's hand will not
+reach, and it has to be you who does it, and it will not be pleasant.
+
+What is yours?
+
+---
+
+## Question 32 — What Do You Not Forgive Yourself For?
+
+Something you did, or failed to do, that you have never quite settled.
+
+You cannot change it. That is precisely the difficulty — the part of you that wants to fix
+things has nothing to work on, and so it keeps going over the same ground.
 
 What is it?
 
----
-
-## Question 8 — What Are You Not Giving Enough Attention To?
-
-Which important area of your life are you currently under-investing in?
-
-Consider:
-
-* Health
-* Wealth
-* Relationships
-* Family
-* Creativity
-* Career
-* Learning
-* Contribution
-* Spiritual or philosophical development
-
-Why do you think you neglect it?
-
-What does that neglect cost you?
+Write only what you are willing to write. This one is yours, not a confession owed to anyone.
 
 ---
 
-# PART 4 — WORK, CREATION AND CONTRIBUTION
+# PART 10 — THE BESTOWING HAND
 
-## Question 9 — What Do You Want To Create?
+## Question 33 — What Overflows In You?
 
-If you had the time, ability and resources, what would you want to create?
+There is a kind of having so much of something that it has to go somewhere — knowledge,
+energy, skill, patience, attention, money, a way of seeing things.
 
-This could be:
-
-* A business
-* Music
-* Art
-* A community
-* A product
-* A company
-* A body of work
-* A family legacy
-* A movement
-* Something that solves a problem
-
-What would you want to bring into existence?
+What do you have more of than you need?
 
 ---
 
-## Question 10 — What Kind Of Work Feels Meaningful?
+## Question 34 — What Have You Been Given?
 
-Think about the work that makes you feel that your time was well spent.
+Almost nobody arrives where they are unaided. Somebody taught, funded, vouched for, made room,
+or simply did not stand in the way.
 
-What kind of work gives you a sense that you are making an impact?
+What were you given that you did not earn?
 
-What problems do you enjoy solving?
-
-Who do you want to help?
-
-What kind of contribution feels meaningful to you?
+And what would repaying it actually look like — not in gratitude, but in something done?
 
 ---
 
-## Question 11 — What Would You Do If You Were More Focused?
+## Question 35 — Who Could Actually Take It?
 
-Imagine you stopped spending significant amounts of time on things that don't matter.
+Giving needs someone able to receive, and this is where it usually fails.
 
-What would you spend that time doing instead?
+Have you offered something — help, teaching, work, money, care — that was refused, resented,
+or simply not wanted?
 
-Identify the activities that would deserve your best attention.
-
----
-
-## Question 12 — What Are You Naturally Drawn Toward?
-
-What subjects, activities or forms of creation repeatedly attract your attention?
-
-What do you find yourself researching?
-
-What do you enjoy learning?
-
-What do you enjoy creating?
-
-What do you return to even when nobody asks you to?
+And separately: how well do you take things from other people?
 
 ---
 
-# PART 5 — TIME AND PRIORITIES
+# PART 11 — YOUR OWN TABLES
 
-## Question 13 — Where Does Your Time Actually Go?
+## Question 36 — Your Own Good And Bad
 
-Think honestly about a normal week.
+After everything above, try to finish this sentence for yourself:
 
-Where does your time go?
+**"This is my good, and this is my bad."**
 
-What activities consume time without giving you much value?
+Not what is good in general. What is good for you, chosen on purpose, that you would defend
+if someone sensible disagreed with you.
 
-What activities create genuine value?
-
-What do you do simply because you have fallen into the habit of doing it?
-
----
-
-## Question 14 — What Would You Prioritise If You Could Start Again?
-
-Imagine that tomorrow you were given complete control over your schedule.
-
-What would you make non-negotiable?
-
-Consider the things that matter most for:
-
-**Health**
-
-**Wealth**
-
-**Happiness**
-
-**Relationships**
-
-**Creation**
-
-**Contribution**
-
-What would your ideal day look like?
+Two or three things is plenty. One is enough if it is real.
 
 ---
 
-## Question 15 — What Are You Doing Because You Are "Going With The Flow"?
+## Question 37 — What Have You Decided And Not Done?
 
-Identify things you continue doing mainly because:
+There is a specific and very common failure that has nothing to do with not knowing what you
+want.
 
-* Other people expect them
-* They are already scheduled
-* You have always done them
-* You don't want to disappoint someone
-* It is easier than changing
-* You never stopped to question them
+You decide. You mean it. You do not do it. And then you decide again, sometimes for years.
 
-Which of these activities would you eliminate if you were designing your life intentionally?
+What is yours? How long has it been going on?
 
 ---
 
-## Question 16 — What Do You Need To Stop Doing Yourself?
+## Question 38 — Your Non-Negotiables
 
-Think about tasks you habitually do yourself even though someone else could handle them.
+What are you no longer willing to trade away, whatever it costs?
 
-What prevents you from delegating?
-
-What would happen if you trusted people to report results rather than personally controlling every detail?
-
----
-
-# PART 6 — HEALTH
-
-## Question 17 — What Does Your Body Need From You?
-
-Imagine your body as something you are responsible for taking care of over the next several decades.
-
-What does it need from you?
-
-Consider:
-
-* Exercise
-* Food
-* Sleep
-* Stress
-* Energy
-* Strength
-* Mobility
-* Medical care
-* Consistency
-
-What would taking care of yourself actually look like?
+Keep the list short. One thing you will genuinely hold is worth more than five you will
+renegotiate the first time it becomes inconvenient.
 
 ---
 
-## Question 18 — Your Ideal Health Routine
+## Question 39 — What Will You Actually Do?
 
-Imagine creating a sustainable daily routine for your physical health.
+Not what you want to happen — what you will do.
 
-What would you include?
+"Earn more" is a result and depends on other people. "Send three proposals a week" is an
+action and depends on you. Nobody flies without first learning to stand and walk, and the
+standing and walking is what this question is asking for.
 
-Consider activities such as:
-
-* Swimming
-* Gym
-* Walking
-* Sports
-* Mobility
-* Other physical activities
-
-How much time would you realistically dedicate to movement?
-
-What would make you actually follow through?
+Name two or three things that are specific, repeatable, and entirely in your control.
 
 ---
 
-## Question 19 — What Are You Risking By Neglecting Health?
+# PART 12 — AGAIN, AND INNUMERABLE TIMES
 
-If you continue treating your health exactly as you do today for another decade, what concerns you?
+## Question 40 — This, Again, Without End
 
-What future version of yourself might pay the price?
+Imagine that the life you are currently living — this week, this year, exactly as it is, with
+nothing removed — repeated again, and again, without end.
 
-What would you rather prevent now?
+Not as a belief. As a question.
 
----
-
-# PART 7 — WEALTH
-
-## Question 20 — What Does Wealth Mean To You?
-
-When you say you want to make more money, what are you actually seeking?
-
-Is it:
-
-* Freedom?
-* Security?
-* Comfort?
-* Independence?
-* Status?
-* Experiences?
-* Ability to help others?
-* Your children's future?
-* Your parents' wellbeing?
-* The ability to create?
-
-What does money represent to you?
+What is your honest first reaction?
 
 ---
 
-## Question 21 — What Would Abundance Look Like?
+## Question 41 — What Would Have To Change?
 
-Imagine living without the financial limitations you currently experience.
+Given that reaction: what would have to be different before you could meet the same question
+and say yes?
 
-What would change?
-
-What would you be able to:
-
-* Create?
-* Give?
-* Experience?
-* Provide for your family?
-* Build?
-* Support?
-
-What would abundance allow you to become?
+Be concrete. Not "be happier" — what specifically.
 
 ---
 
-## Question 22 — What Is Preventing You From Building Wealth?
+## Question 42 — Thus I Would Have It
 
-Be honest.
+There are parts of your life you did not choose and would not have chosen.
 
-What gets in the way?
+Is there any of it you have come to want anyway — not because it turned out well, and not
+because you have made peace with it, but because you would now choose it as part of the life
+that is yours?
 
-Possible factors include:
-
-* Not giving money enough attention
-* Lack of focus
-* Lack of systems
-* Overthinking
-* Procrastination
-* Lack of sales
-* Lack of prioritisation
-* Avoiding financial decisions
-* Spending too much time on low-value activities
-
-What do you recognise in yourself?
-
----
-
-# PART 8 — RELATIONSHIPS
-
-## Question 23 — Who Matters Most?
-
-Who are the people whose presence makes your life meaningful?
-
-Think about:
-
-* Parents
-* Children
-* Partner
-* Family
-* Friends
-* Mentors
-* Colleagues
-* Community
-
-What makes these relationships important to you?
-
----
-
-## Question 24 — The People You Still Have Time With
-
-Think about the older people you love.
-
-What do you imagine they want most from you?
-
-What might they value more:
-
-* Money?
-* Gifts?
-* Solutions?
-* Your presence?
-* Your time?
-* A conversation?
-* Being remembered?
-
-What do you want your relationship with them to look like while you still have the opportunity?
-
----
-
-## Question 25 — The People You Want To Leave Behind
-
-Imagine your children or the people closest to you looking back on your life.
-
-What would you want them to say about you?
-
-Not what did you own.
-
-Not how successful you looked.
-
-What kind of person were you?
-
-What did you give them?
-
-What did they learn from watching you live?
-
----
-
-# PART 9 — CREATIVITY
-
-## Question 26 — What Wants To Come Out Of You?
-
-What creative work feels as though it is waiting to be expressed?
-
-Think about:
-
-* Songs
-* Music
-* Writing
-* Ideas
-* Businesses
-* Products
-* Experiences
-* Communities
-
-What do you want to bring into the world?
-
----
-
-## Question 27 — Why Create?
-
-When you create something, what are you really seeking?
-
-Is it:
-
-* Expression?
-* Recognition?
-* Connection?
-* Joy?
-* Meaning?
-* Impact?
-* Beauty?
-* Freedom?
-
-What happens inside you when something you created touches another person?
-
----
-
-# PART 10 — IMPACT
-
-## Question 28 — How Do You Want To Help People?
-
-Imagine that your work became genuinely useful to others.
-
-Who would you help?
-
-What problem would you solve?
-
-How would their life be better because you existed?
-
----
-
-## Question 29 — What Is Your Unique Contribution?
-
-What do you believe you can contribute that is particularly yours?
-
-It might come from a combination of:
-
-* Experience
-* Creativity
-* Knowledge
-* Business ability
-* Relationships
-* Leadership
-* Music
-* Technology
-* Problem solving
-
-What combination makes you different?
-
----
-
-## Question 30 — What Would You Want People To Remember?
-
-Imagine people talking about you after you are gone.
-
-What would you want them to say?
-
-What did you create?
-
-Who did you help?
-
-How did you make people feel?
-
-What did you stand for?
-
----
-
-# PART 11 — SELF-OVERCOMING
-
-## Question 31 — Your Old Self
-
-Describe the version of yourself that has brought you this far.
-
-What were their strengths?
-
-What were their limitations?
-
-What did they tolerate?
-
-What did they avoid?
-
-What did they accomplish?
-
----
-
-## Question 32 — Your Emerging Self
-
-Now describe the person you are becoming.
-
-What is different?
-
-Perhaps the old version:
-
-* waited
-
-while the new version:
-
-* acts
-
-Perhaps the old version:
-
-* accepted
-
-while the new version:
-
-* speaks up
-
-Perhaps the old version:
-
-* reacted
-
-while the new version:
-
-* chooses
-
-Perhaps the old version:
-
-* waited for something to happen
-
-while the new version:
-
-* makes things happen
-
-Describe your own transformation.
-
----
-
-## Question 33 — What Must You Become Better At?
-
-If you wanted to become better at every important level of your life, where would you start?
-
-Consider:
-
-* Health
-* Wealth
-* Relationships
-* Leadership
-* Communication
-* Creativity
-* Discipline
-* Time management
-* Courage
-* Decision making
-
-What needs the greatest improvement?
-
-Why?
-
----
-
-# PART 12 — ACTION
-
-## Question 34 — Your Non-Negotiables
-
-Choose the few things that deserve consistent action.
-
-What will you protect even when life becomes busy?
-
-Examples may include:
-
-* Exercise
-* Family time
-* Creative work
-* Wealth-building work
-* Meaningful work
-* Time with elders
-* Learning
-
-Create your own list.
-
----
-
-## Question 35 — Your Ideal Day
-
-Design a day that represents the life you want.
-
-How would you divide your time?
-
-Think about:
-
-* Health
-* Wealth
-* Creative work
-* Meaningful work
-* Family
-* Relationships
-* Rest
-
-Do not design an impossible fantasy.
-
-Design a day you could actually repeat.
-
----
-
-## Question 36 — The Three Most Important Actions
-
-If you could only accomplish three meaningful things each day, what would they be?
-
-Choose the activities that have the greatest long-term effect on:
-
-**Health**
-
-**Wealth**
-
-**Happiness**
-
-Why did you choose these three?
-
----
-
-## Question 37 — What Will You Stop?
-
-What is one thing you need to stop doing?
-
-It could be:
-
-* A habit
-* A commitment
-* A distraction
-* A way of thinking
-* A pattern of behaviour
-* Something you do because you are afraid to change it
-
-What will you stop?
-
----
-
-## Question 38 — What Will You Start?
-
-What is one behaviour you know would improve your life if you consistently did it?
-
-What is the smallest version of that behaviour you can begin immediately?
-
----
-
-# PART 13 — YOUR PHILOSOPHY OF LIFE
-
-## Question 39 — What Do You Believe Makes A Good Life?
-
-After everything you have considered in this exercise, answer this question:
-
-**What makes a life well lived?**
-
-Write the answer in your own words.
-
----
-
-## Question 40 — What Do You Want Your Life To Stand For?
-
-Complete:
-
-**"I want my life to stand for..."**
-
-Do not try to sound philosophical.
-
-Say what you genuinely believe.
-
----
-
-## Question 41 — What Are You Becoming?
-
-Complete:
-
-**"I am becoming a person who..."**
-
-Describe the person you are choosing to become.
-
----
-
-## Question 42 — Your Personal Commitment
-
-Complete:
-
-**"From this point forward, I will..."**
-
-Choose commitments that are within your control.
-
-Focus on actions rather than outcomes.
+If the answer is none, that is a real answer and a common one. Do not manufacture something
+here.
 
 ---
 
 # FINAL REFLECTION
 
-## Question 43 — If You Knew You Had Limited Time
+## Question 43 — What Are You Becoming?
 
-Imagine you suddenly became deeply aware that your remaining time is limited.
+Not what you are. What you are becoming.
 
-Not necessarily that death is imminent, but that your time is finite and cannot be recovered.
+Finish the sentence in your own words, at whatever length you want:
 
-What becomes more important?
+**"I am becoming a person who…"**
 
-What becomes less important?
-
-Who do you want to spend time with?
-
-What do you want to create?
-
-What conversations can no longer be postponed?
-
-What would you stop wasting time on?
+Then say what would have to be true, a year from now, for that to still be the honest answer.
 
 ---
 
 # FINAL SYNTHESIS
 
-After completing all questions, the system should generate a personalised reflection.
-
-The AI should analyse the participant's answers and identify recurring themes.
+After the final question, a complete reflection is generated across every answer.
 
 ## Required synthesis categories
 
-### 1. Core Values
+### 1. What You Carry
 
-What values repeatedly appear in the participant's answers?
+What the participant has taken on themselves, drawn from their own account, and where their
+answers suggest a distinction between what is theirs and what was absorbed.
 
-Distinguish:
+### 2. What You Have Refused
 
-* explicitly stated values
-* inferred values
+Refusals already made and what they cost, together with anything they identified as still
+obeyed without having been chosen.
 
----
+### 3. What You Would Make
 
-### 2. Sources Of Meaning
+What they said they want to create, and whether their answers show it beginning.
 
-What appears to make life meaningful for this person?
+### 4. Your Comfortable Life
 
----
+Where safety has been arranged, and whether their own answers suggest it is sufficient or has
+replaced something.
 
-### 3. Relationships
+### 5. The Crossing
 
-Who appears to matter most?
+What they are in the middle of, what they are waiting for, and what the waiting is costing.
 
-What does the participant value about relationships?
+### 6. Your Body
 
----
+What they know their body needs, what they have been taking from it, and anything in their
+answers that stands beside that.
 
-### 4. Health
+### 7. Values You Did Not Choose
 
-What does the participant want their relationship with their body and health to become?
+The inherited table, what difficulty it was an answer to, and what they said they would keep
+on purpose.
 
----
+### 8. What Money Is For
 
-### 5. Wealth
+What wealth means to them and whether anything flows outward from it.
 
-What does wealth represent to the participant?
+### 9. Those You Walk With
 
-What financial goals or tensions appear?
+Who makes a demand on them, what they want from others, and what their answers suggest about
+their own company.
 
----
+### 10. What You Give
 
-### 6. Creativity
+What overflows in them, what they were given, and whether there is anyone able to receive
+what they offer.
 
-What does the participant want to create?
+### 11. What Weighs On You
 
-Why does creation matter?
+The voice they recorded, what they must handle themselves, and what remains unsettled.
 
----
+### 12. Strengths
 
-### 7. Contribution
+What their answers actually demonstrate, anchored in specific things they wrote.
 
-Who does the participant want to help?
+### 13. Contradictions
 
-What impact do they want to have?
+Tensions genuinely present across their answers, stated plainly and left standing.
 
----
+### 14. Your Own Good And Bad
 
-### 8. Strengths
-
-Identify recurring strengths demonstrated in the answers.
-
-Every significant claim should be supported by evidence from the participant's answers.
-
----
-
-### 9. Challenges
-
-Identify recurring difficulties.
-
-Do not diagnose.
-
-Use language such as:
-
-"You appear to notice..."
-
-"One recurring pattern may be..."
-
----
-
-### 10. Contradictions
-
-Look for meaningful tensions.
-
-Examples:
-
-* Wants freedom but overcommits
-* Wants wealth but does not prioritise money
-* Values relationships but struggles to create time
-* Wants action but tends to overthink
-* Wants health but allows other priorities to dominate
-
-Do not force contradictions where none exist.
-
----
-
-### 11. Old Self
-
-Summarise the participant's description of the person they have been.
-
----
-
-### 12. Emerging Self
-
-Summarise the person they say they are becoming.
-
----
-
-### 13.  Lens
-
-Use  concepts only where genuinely relevant.
-
-Potential concepts include:
-
-* Self-overcoming
-* Creation of values
-* Will to power as self-mastery/creative force
-* The tension between inherited values and chosen values
-* Becoming
-* Courage
-* Responsibility
-* Affirmation of life
-
----
-
-### 14. Personal Philosophy
-
-Synthesise the participant's own words into a concise statement of their emerging philosophy of life.
-
-This should sound like the participant's philosophy.
-
----
+The values they claimed on purpose, and how far the rest of their answers support them.
 
 ### 15. Three Priorities
 
-Identify the three most important areas the participant appears to need to prioritise.
+At most three, each supported by what they wrote. Fewer if the material only supports fewer.
 
-Prefer:
+### 16. Thirty-Day Commitments
 
-**Health**
-
-**Wealth**
-
-**Relationships**
-
-when supported by their answers.
-
-But do not force those categories if their answers indicate different priorities.
-
----
-
-### 16. 30-Day Commitments
-
-Generate three practical actions.
-
-Each action should be:
-
-* specific
-* measurable
-* realistic
-* within the participant's control
-* connected to something they themselves identified
+At most three actions: specific, repeatable, within their control, and traceable to something
+they identified themselves.
 
 ---
 
 # AI INTERPRETATION PRINCIPLES
 
-The AI must follow these rules throughout the exercise.
-
 ## Principle 1 — Mirror, Don't Dictate
 
-The AI is a mirror.
-
-It should help the participant see patterns.
-
-It should not tell the participant who they are.
-
----
+Show the participant what is in their answers. Do not tell them how to live.
 
 ## Principle 2 — Evidence Before Inference
 
-Separate:
-
-EXPLICIT
-
-from:
-
-INFERRED
-
-Example:
-
-Explicit:
-"I want to make more money for my children."
-
-Inference:
-"Providing security for your children appears to be an important motivation."
-
-Do not state the inference as a fact.
-
----
-
-## Principle 3 — No Diagnosis
-
-Do not diagnose:
-
-* mental health conditions
-* personality disorders
-* addictions
-* medical conditions
-
----
-
-## Principle 4 — No False Certainty
-
-Avoid:
-
-"You are definitely..."
-
-"You always..."
-
-"You clearly have..."
-
-Prefer:
-
-"Your answer suggests..."
-
-"One pattern that appears..."
-
-"You seem to place importance on..."
-
----
-
-## Principle 5 — Specificity
-
-Interpret the actual answer.
-
-Avoid generic motivational statements.
-
----
-
-## Principle 6 — Respect Contradictions
-
-Contradictions are valuable.
-
-Do not smooth them away.
-
-A tension between what someone says they value and how they spend their time may itself be an important discovery.
-
----
-
-## Principle 7 — Action
-
-Reflection should eventually lead toward action.
-
-The purpose is not endless introspection.
-
-The goal is:
-
-SEE
-
-→ UNDERSTAND
-
-→ CHOOSE
-
-→ ACT
-
-→ BECOME
-
----
-
-# END STATE
-
-The exercise should leave the participant with a clearer understanding of:
-
-**What matters to me.**
-
-**What I want to create.**
-
-**Who I want to become.**
-
-**What is holding me back.**
-
-**Who I want to spend my time with.**
-
-**How I want to use my time.**
-
-**How I want to care for my health.**
-
-**What wealth means to me.**
-
-**What I want to contribute.**
-
-**What I need to change.**
-
-**What I will do next.**
-
-The ultimate question of the exercise is:
-
-# Who are you choosing to become?
-
-And the ultimate movement is:
-
-# From waiting for life to happen → to consciously making life happen.
+State what is present before stating what it may mean, and keep the two visibly separate.

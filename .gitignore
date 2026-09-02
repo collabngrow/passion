@@ -24,6 +24,12 @@ FIREBASE_PRIVATE_KEY.json
 # generated content pipelines
 lib/**/*.generated.ts
 
+# source book: build-time material for authoring content/knowledge-base/, not a
+# runtime dependency. The PDF is kept outside the repo; content/source/ is
+# regenerated from it with `npm run extract:source`.
+content/source/
+*.pdf
+
 # testing
 coverage/
 

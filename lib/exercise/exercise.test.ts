@@ -21,8 +21,8 @@ import {
 describe("exercise content", () => {
   it("carries every question and section from the source", () => {
     expect(totalQuestions).toBe(43);
-    expect(exercise.sections).toHaveLength(14);
-    expect(exerciseVersion).toBe("1.0");
+    expect(exercise.sections).toHaveLength(13);
+    expect(exerciseVersion).toBe("2.0");
   });
 
   it("numbers questions contiguously from 1", () => {
@@ -55,18 +55,19 @@ describe("exercise content", () => {
   });
 
   it("preserves inline emphasis from the source", () => {
-    // Question 2 asks the participant to complete "I lived a good life."
-    const q2 = getQuestion("q2");
-    const bold = q2!.blocks
+    // Question 36 asks the participant to complete "This is my good, and this
+    // is my bad." The sentence they finish is emphasised.
+    const q36 = getQuestion("q36");
+    const bold = q36!.blocks
       .flatMap((block) => (block.kind === "paragraph" ? block.segments : []))
       .filter((segment) => segment.bold);
     expect(bold.length).toBeGreaterThan(0);
   });
 
   it("preserves bullet guidance from the source", () => {
-    // Question 5 lists candidate weaknesses as bullets.
-    const q5 = getQuestion("q5");
-    const lists = q5!.blocks.filter((block) => block.kind === "list");
+    // Question 7 lists the kinds of weight a participant may have taken up.
+    const q7 = getQuestion("q7");
+    const lists = q7!.blocks.filter((block) => block.kind === "list");
     expect(lists.length).toBeGreaterThan(0);
   });
 });
@@ -99,8 +100,8 @@ describe("navigation", () => {
     const finals = exercise.questions.filter((q) => isLastInSection(q.id));
     expect(finals).toHaveLength(exercise.sections.length);
     // Section reflections are generated on these boundaries (§59).
-    expect(isLastInSection("q2")).toBe(true); // last of part-1
-    expect(isLastInSection("q1")).toBe(false);
+    expect(isLastInSection("q3")).toBe(true); // last of part-1
+    expect(isLastInSection("q2")).toBe(false);
     expect(isLastInSection("q43")).toBe(true); // last of final-reflection
   });
 });

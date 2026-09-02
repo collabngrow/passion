@@ -15,9 +15,10 @@
     "pretest": "npm run generate",
     "test": "vitest run",
     "test:watch": "vitest",
+    "extract:source": "node scripts/extract-source.mjs",
     "verify:setup": "node scripts/verify-setup.mjs",
     "deploy:rules": "firebase deploy --only firestore --project passion-f0aec",
-    "smoke:ai": "node scripts/smoke-ai.mjs"
+    "smoke:ai": "vitest run --config vitest.smoke.config.ts"
   },
   "dependencies": {
     "@google/genai": "^1.30.0",

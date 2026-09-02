@@ -9,11 +9,12 @@
  * `===`. Every item carries its own YAML frontmatter:
  *
  *   ---
- *   id: c-self-overcoming
- *   title: Self-overcoming
+ *   id: c-the-ox
+ *   title: The ox, and the weight taken up willingly
  *   category: concepts
- *   themes: [becoming, discipline]
- *   related: [c-becoming]
+ *   themes: [burden, reverence, duty]
+ *   related: [c-three-transformations]
+ *   source: I.1 The Three Metamorphoses
  *   ---
  *
  *   Prose...
@@ -36,7 +37,7 @@ const SOURCE_DIR = resolve(ROOT, "content/knowledge-base");
 const OUTPUT = resolve(ROOT, "lib/ai/knowledge-base.generated.ts");
 
 /** Bumped when the framework content changes; stored with every result (§38E). */
-const KNOWLEDGE_BASE_VERSION = "1.0";
+const KNOWLEDGE_BASE_VERSION = "2.0";
 
 const ITEM_SEPARATOR = /^===\s*$/m;
 
@@ -78,6 +79,13 @@ function parseFile(filename) {
       const body = content.trim();
       if (body === "") throw new Error(`${where}: has no body text.`);
 
+      if (typeof data.source !== "string" || data.source.trim() === "") {
+        throw new Error(
+          `${where}: missing "source". Every item must record the passage it was ` +
+            `drawn from, so a claim can be traced back and checked.`,
+        );
+      }
+
       return {
         id: data.id.trim(),
         title: data.title.trim(),
@@ -85,6 +93,7 @@ function parseFile(filename) {
         themes: normaliseList(data.themes, where, "themes"),
         relatedConcepts: normaliseList(data.related, where, "related"),
         content: body,
+        sourceRef: data.source.trim(),
         sourceVersion: KNOWLEDGE_BASE_VERSION,
         wordCount: body.split(/\s+/).length,
       };
@@ -162,6 +171,13 @@ function emit(items) {
 
   // Emitted explicitly: wordCount is a build-time validation aid, and this
   // keeps the generated shape matching KnowledgeItem exactly.
+  //
+  // sourceRef is deliberately NOT emitted. It names the passage each item came
+  // from, which is exactly the provenance §38I forbids the participant-facing
+  // side from carrying. Keeping it in the Markdown means an author can trace a
+  // claim while the runtime never holds a string that could identify the
+  // source, however the generated module is imported. retrieval.test.ts asserts
+  // the built corpus stays clean.
   const runtime = items.map((item) => ({
     id: item.id,
     category: item.category,

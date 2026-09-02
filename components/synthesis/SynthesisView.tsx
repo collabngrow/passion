@@ -21,20 +21,20 @@ import { apiFetch } from "@/lib/auth/client";
 
 type Synthesis = {
   opening?: string;
-  coreValues: string;
-  sourcesOfMeaning: string;
-  relationships: string;
-  health: string;
-  wealth: string;
-  creativity: string;
-  contribution: string;
+  whatYouCarry: string;
+  whatYouHaveRefused: string;
+  whatYouWouldMake: string;
+  comfortableLife: string;
+  theCrossing: string;
+  body: string;
+  inheritedValues: string;
+  money: string;
+  thoseYouWalkWith: string;
+  whatYouGive: string;
+  whatWeighsOnYou: string;
   strengths: string;
-  challenges: string;
   contradictions: string;
-  oldSelf: string;
-  emergingSelf: string;
-  philosophicalLens: string;
-  personalPhilosophy: string;
+  yourOwnGoodAndBad: string;
   threePriorities: string[];
   thirtyDayCommitments: string[];
 };
@@ -195,23 +195,24 @@ export function SynthesisView() {
             ) : null}
           </header>
 
-          <Passage title="What appears to matter most to you" body={synthesis.coreValues} />
-          <Passage title="Where meaning comes from" body={synthesis.sourcesOfMeaning} />
-          <Passage title="The people in your life" body={synthesis.relationships} />
-          <Passage title="Your health" body={synthesis.health} />
-          <Passage title="What wealth means to you" body={synthesis.wealth} />
-          <Passage title="What you want to create" body={synthesis.creativity} />
-          <Passage title="What you want to contribute" body={synthesis.contribution} />
+          <Passage title="What you carry" body={synthesis.whatYouCarry} />
+          <Passage title="What you have refused" body={synthesis.whatYouHaveRefused} />
+          <Passage title="What you would make" body={synthesis.whatYouWouldMake} />
+
+          <Passage title="What you have made safe" body={synthesis.comfortableLife} />
+          <Passage title="What you are in the middle of" body={synthesis.theCrossing} />
+
+          <Passage title="Your body" body={synthesis.body} />
+          <Passage title="Values you did not choose" body={synthesis.inheritedValues} />
+          <Passage title="What money is for" body={synthesis.money} />
+          <Passage title="The people you walk with" body={synthesis.thoseYouWalkWith} />
+          <Passage title="What you give" body={synthesis.whatYouGive} />
+
+          <Passage title="What weighs on you" body={synthesis.whatWeighsOnYou} />
           <Passage title="Your strengths" body={synthesis.strengths} />
-
-          <Passage title="Who you have been" body={synthesis.oldSelf} />
-          <Passage title="The person you are becoming" body={synthesis.emergingSelf} />
-
-          <Passage title="What may be holding you back" body={synthesis.challenges} />
           <Passage title="Tensions worth sitting with" body={synthesis.contradictions} />
 
-          <Passage title="A way of seeing this" body={synthesis.philosophicalLens} />
-          <Passage title="Your philosophy, in your own words" body={synthesis.personalPhilosophy} />
+          <Passage title="Your own good and bad" body={synthesis.yourOwnGoodAndBad} />
 
           {synthesis.threePriorities.length > 0 ? (
             <section className="mt-12 rounded-lg border border-line bg-brand-soft px-6 py-7">

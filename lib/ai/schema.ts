@@ -55,27 +55,29 @@ export const interpretationResponseSchema = {
 
 const section = z.string().max(6000);
 
-/** The sixteen categories §60 requires. */
+/**
+ * The sixteen categories §60 requires, following the exercise's own arc.
+ *
+ * Field names describe what the participant wrote about rather than naming any
+ * framework concept: §38I forbids provenance anywhere in the data model,
+ * because field names surface in exports and in the admin view. "whatYouCarry"
+ * is safe in a way that a term of art would not be.
+ */
 export const synthesisSchema = z.object({
-  coreValues: section,
-  sourcesOfMeaning: section,
-  relationships: section,
-  health: section,
-  wealth: section,
-  creativity: section,
-  contribution: section,
+  whatYouCarry: section,
+  whatYouHaveRefused: section,
+  whatYouWouldMake: section,
+  comfortableLife: section,
+  theCrossing: section,
+  body: section,
+  inheritedValues: section,
+  money: section,
+  thoseYouWalkWith: section,
+  whatYouGive: section,
+  whatWeighsOnYou: section,
   strengths: section,
-  challenges: section,
   contradictions: section,
-  oldSelf: section,
-  emergingSelf: section,
-  /**
-   * Named `philosophicalLens` rather than after the framework's source.
-   * §38I: nothing in the data model may identify where the ideas come from,
-   * because field names surface in exports and in the admin view.
-   */
-  philosophicalLens: section,
-  personalPhilosophy: section,
+  yourOwnGoodAndBad: section,
   threePriorities: z.array(z.string().max(1000)).min(1).max(3),
   thirtyDayCommitments: z.array(z.string().max(1000)).min(1).max(3),
   /** Short opening statement for the result page. */
@@ -88,27 +90,28 @@ export const synthesisResponseSchema = {
   type: "object",
   properties: {
     opening: { type: "string" },
-    coreValues: { type: "string" },
-    sourcesOfMeaning: { type: "string" },
-    relationships: { type: "string" },
-    health: { type: "string" },
-    wealth: { type: "string" },
-    creativity: { type: "string" },
-    contribution: { type: "string" },
+    whatYouCarry: { type: "string" },
+    whatYouHaveRefused: { type: "string" },
+    whatYouWouldMake: { type: "string" },
+    comfortableLife: { type: "string" },
+    theCrossing: { type: "string" },
+    body: { type: "string" },
+    inheritedValues: { type: "string" },
+    money: { type: "string" },
+    thoseYouWalkWith: { type: "string" },
+    whatYouGive: { type: "string" },
+    whatWeighsOnYou: { type: "string" },
     strengths: { type: "string" },
-    challenges: { type: "string" },
     contradictions: { type: "string" },
-    oldSelf: { type: "string" },
-    emergingSelf: { type: "string" },
-    philosophicalLens: { type: "string" },
-    personalPhilosophy: { type: "string" },
+    yourOwnGoodAndBad: { type: "string" },
     threePriorities: { type: "array", items: { type: "string" } },
     thirtyDayCommitments: { type: "array", items: { type: "string" } },
   },
   required: [
-    "coreValues",
-    "sourcesOfMeaning",
-    "personalPhilosophy",
+    "whatYouCarry",
+    "whatYouHaveRefused",
+    "whatYouWouldMake",
+    "yourOwnGoodAndBad",
     "threePriorities",
     "thirtyDayCommitments",
   ],

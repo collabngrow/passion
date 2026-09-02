@@ -1536,9 +1536,145 @@ becomes a nuisance, raise `testTimeout` rather than weakening the test.
 
 ---
 
+## Sprint 17 - The knowledge base was never built from the book
+
+### The finding
+
+Interpretations were generic in every section, and the cause was not the prompt.
+`content/knowledge-base/README.md` recorded its own provenance honestly: the corpus was built
+from `exercise_content_1.md` and "the concepts named in `master_prompt.md`" — never from the
+source book. It was a fluent second-hand paraphrase. Of 56 items, roughly six were genuinely
+from the source; the rest were life-domain buckets (health, wealth, relationships, time) that
+mirrored the exercise's own 13 parts, and the "tensions" were generic life contradictions
+rather than the source's. Nothing in the corpus contained the three transformations, the last
+man, the rope over the abyss, the spirit of gravity, the bestowing virtue, inherited tables of
+value or eternal recurrence. `camel`/`lion`/`zarathustra` appeared in exactly one place in the
+repo: the forbidden-word list in `retrieval.test.ts`.
+
+Two amplifiers made it worse:
+
+- **Restraint outweighed substance in every prompt.** `ALWAYS_INCLUDED` pinned `principles` +
+  `cautions` + `interpretationGuidance` — 24 of 56 items, all prohibitions. Only 8-11 topical
+  items carried anything to reason *with*.
+- **Theme matching was a naked substring check.** `haystack.includes(theme)` fired `action` on
+  "transaction", `health` on "wealthy", `past` on "pasta". With 28 blunt tags the supplement had
+  stopped discriminating.
+
+### Decisions taken by the owner
+
+| | |
+| --- | --- |
+| Exercise | Rebuilt on the book's arc — 12 parts + final reflection, replacing the 13 life-domain parts |
+| Source visibility | Images permitted **unattributed**; author/book/chapter never named. §38I amended to record this rather than silently violated |
+| Figures | **Ox → Tiger → Child** (the owner's substitution for camel/lion/child), rope retained |
+| Migration | Clean break. v2.0 replaces v1.0; in-flight answers orphaned by design |
+
+The ox is a *driven* animal where the original kneels to be laden and asks for the heaviest, so
+Part 3's questions are all worded to ask what the participant **took on themselves**. Without
+that the part drifts into "who is oppressing you" and the engine starts finding victims. This is
+recorded because it is invisible in the diff and easy to undo by accident.
+
+### What was built
+
+- **`scripts/extract-source.mjs`** — segments the PDF into `content/source/` (prologue + 80
+  chapters, 89,651 words). Chapter headings are accepted only in strictly increasing order,
+  which rejects both false positives — "1881. I made a note…" in the introduction and the
+  stanza numbered "2." inside chapter 76 — without special-casing either. `content/source/` and
+  `*.pdf` are gitignored; the PDF lives outside the repo. Not wired into `generate`: a build
+  must not depend on a file that is not in the repository.
+- **Knowledge base rewritten from the text** — 115 items, 67 themes, ~19,200 words (was 56 / 28
+  / ~7,500). Every item carries a `source:` naming its passage. Authored by hand, chapter by
+  chapter; the README now says explicitly not to generate items by summarising with a model,
+  since that reproduces the original failure with more steps.
+- **`source:` is validated and then deliberately dropped.** It is the one genuinely identifying
+  string in the pipeline, so `build-kb.mjs` omits it from the generated module. No provenance
+  exists at runtime however that module is imported — which matters because `retrieval.ts` is
+  not `server-only`.
+- **Exercise rebuilt** — 43 questions across 13 sections: The Comfortable Life, The Rope, The
+  Ox, The Tiger, The Child, The Body, Goals You Did Not Choose, Those You Walk With, What
+  Weighs You Down, The Bestowing Hand, Your Own Tables, Again And Innumerable Times, Final
+  Reflection. Health, wealth and relationships survive as material but sit where the book puts
+  them rather than as top-level domains.
+- **Retrieval fixed** — `cautions` dropped from always-on (the prohibitions that must never
+  lapse are stated unconditionally in `systemInstruction()` instead, so nothing depends on
+  retrieval to enforce them); theme matching is word-boundary anchored and matches hyphenated
+  themes written as two words; `maxTopical` 8 → 12.
+- **Prompts** — the vocabulary ban relaxed to permit the images and forbid provenance; the
+  framework block made the interpretive authority, with an explicit instruction that where the
+  framework gives no purchase the answer is a *shorter* reflection, not a more generic one.
+  Both prompt versions → 2.0.
+- **Synthesis** — the 16 categories follow the new arc (`whatYouCarry`, `whatYouHaveRefused`,
+  `whatYouWouldMake`, …). Field names describe what the participant wrote about rather than
+  naming a concept, because §38I covers the data model too — field names surface in exports and
+  the admin view.
+
+### Versions bumped
+
+`KNOWLEDGE_BASE_VERSION` 2.0, `EXERCISE_VERSION` 2.0, both prompt versions 2.0.
+`EXPECTED_SECTIONS` 14 → 13 (the build script caught this itself, exactly as intended).
+
+### Tests
+
+217 passing (was 211). New: substance-outweighs-rules ratio; no passage reference reaches the
+runtime corpus; word-boundary theme matching with the actual old false positives as the case;
+the spine parts reach their own material; a complete synthesis parses. The forbidden-word
+assertion gained `thus spake` / `thus spoke`. The two format tests that failed were pinned to
+old question ids (`q2` for bold, `q5` for lists) and were repointed at `q36` and `q7` — they
+test the parser, not the content, and were right to fail.
+
+### The smoke test was testing nothing
+
+`scripts/smoke-ai.mjs` claimed in its own header to send "the real prompt structure". It did
+not. It kept a private copy of the system instruction, hardcoded questions from exercise v1.0,
+and sent **no framework context whatsoever** — zero references to `selectKnowledge`,
+`renderKnowledge` or `knowledgeBase` in the whole file. It would have passed against an empty
+knowledge base, which is the one thing a smoke test for this system exists to catch.
+
+Replaced with `scripts/smoke-ai.test.ts`, which builds its request through the real
+`buildInterpretationPrompt` and `selectKnowledge` and validates with the real
+`interpretationSchema`. It runs under `vitest.smoke.config.ts` — a separate config so a real
+model call never runs as part of `npm test`, and because importing the real modules needs the
+`@/` alias and the `server-only` stub that a Vitest config already provides.
+
+Its fixture is written to be read two ways: a set of part-3 answers that a generic assistant
+reads as burnout (recommending delegation and boundaries) and the framework should read as
+weight taken up voluntarily out of reverence. That is the actual regression risk, so the
+fixture encodes it.
+
+### Two faults the first live run exposed
+
+Both were in the prompt, not the knowledge base, and both were fixed and re-verified.
+
+1. **The four fields repeated each other.** `SectionReflection.tsx` renders observation,
+   interpretation, tension and reflection in sequence, and nothing in the prompt said what
+   distinguished them — so the model filled `reflection` with a near-verbatim restatement of
+   `observation`, same quotations and all. The participant read the same sentences twice.
+   `buildInterpretationPrompt` now specifies what each field is for and forbids repeating a
+   quotation across them.
+2. **Archaic phrasing.** Reaching for the images pulled the register up with them; the first
+   run produced "the weight you carry was kneelt for voluntarily" — not a word. The prompt now
+   says to write plain modern English including where an image is used, because the images are
+   ordinary words: carrying, kneeling, refusing, beginning.
+
+### Live output, after the fix
+
+Framework-driven and specific: "not imposed by circumstance or family pressure, but chosen
+voluntarily out of reverence for your father" (`c-the-ox`, `d-taken-up-vs-imposed`); "blurred
+the line between what is truly your work and what you carry" (`c-extraneous-weight`,
+`ig-which-of-this-is-yours`). It quoted the participant throughout, named the cross-answer
+tension, and prescribed nothing — closing on examining it being what lets *them* decide, which
+is `p-mirror-not-dictate` holding. 47 knowledge items, 11,393 prompt tokens, ~18s.
+
+§38L's last row — generated output verified free of provenance in practice — is now confirmed
+for the section reflection. The **final synthesis** has still not been generated live; it is a
+different prompt with the whole corpus, and it remains unverified.
+
+---
+
 ## Handoff — start here
 
-**Done: S0-S16.** The build plan is complete; S15 and S16 closed gaps found in live testing.
+**Done: S0-S17.** The build plan is complete; S15 and S16 closed gaps found in live testing,
+S17 rebuilt the knowledge base and exercise from the source book.
 
 ### State
 
@@ -1546,12 +1682,12 @@ becomes a nuisance, raise `testTimeout` rather than weakening the test.
 | --- | --- |
 | Branch | `main`, pushed to `origin` (`collabngrow/passion`) |
 | Build | `npx next build`, `npx eslint`, `npx tsc --noEmit` all clean |
-| Tests | **211 passing** across 15 files (`npx vitest run`) |
+| Tests | **217 passing** across 15 files (`npx vitest run`) |
 | Routes | 35 listed by the build |
 | Firestore | deny-all rules **live** |
 | Docs | `README.md` complete and corrected against the code (§84, §99) |
 | §88 | walked line by line; every answer NO |
-| §38L | confirmed |
+| §38L | confirmed; section reflection verified live (S17), synthesis not yet |
 
 Prefer `npx <tool>` over `npm run <script>`: the sandbox classifier began blocking `npm run`
 once `deploy:rules` was added to `package.json`.

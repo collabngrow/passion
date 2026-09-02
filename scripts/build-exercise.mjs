@@ -22,10 +22,10 @@ const SOURCE = resolve(ROOT, "content/exercise.md");
 const OUTPUT = resolve(ROOT, "lib/exercise/exercise.generated.ts");
 
 /** Bumped deliberately when question wording changes (§95). */
-const EXERCISE_VERSION = "1.0";
+const EXERCISE_VERSION = "2.0";
 
 const EXPECTED_QUESTIONS = 43;
-const EXPECTED_SECTIONS = 14;
+const EXPECTED_SECTIONS = 13;
 
 /* --------------------------------------------------------------------------
  * Inline parsing
